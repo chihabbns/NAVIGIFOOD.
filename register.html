@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Register - NavigiFood</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    <!-- Navbar -->
+    <nav class="navbar">
+      <div class="container nav-container">
+        <a href="index.html" class="logo">
+          <span class="logo-icon">
+            <i class="fas fa-utensil-spoon"></i>
+            <i class="fas fa-utensil-fork"></i>
+          </span>
+          Navigi<span>Food</span>
+        </a>
+        <div class="mobile-toggle" id="mobile-toggle">
+          <i class="fas fa-bars"></i>
+        </div>
+        <ul class="nav-links" id="nav-links">
+          <li><a href="index.html" class="nav-link">Home</a></li>
+          <li><a href="about.html" class="nav-link">About</a></li>
+          <li><a href="browse-food.html" class="nav-link">Browse Food</a></li>
+          <li><a href="donors.html" class="nav-link">Donors</a></li>
+          <li><a href="contact.html" class="nav-link">Contact</a></li>
+          <li>
+            <a href="add-food.html" class="btn btn-primary btn-small"
+              >Donate Food
+            </a>
+          </li>
+          </ul>
+      </div>
+    </nav>
+
+    <!-- Register Section -->
+    <section class="auth-section">
+      <div class="container" style="display: flex; justify-content: center;">
+        <div class="auth-box">
+          <div class="auth-header">
+            <i class="fas fa-user-plus fa-3x text-primary" style="margin-bottom: 20px;"></i>
+            <h2>Create Account</h2>
+            <p>Join the movement to save food!</p>
+          </div>
+
+          <form action="login.html" method="GET">
+            <div class="form-group text-start">
+              <label for="name" class="form-label">Full Name</label>
+              <div class="input-group">
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  class="form-control"
+                  placeholder="Enter your name"
+                  required
+                />
+                <i class="fas fa-user"></i>
+              </div>
+            </div>
+
+            <div class="form-group text-start">
+              <label for="email" class="form-label">Email Address</label>
+              <div class="input-group">
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  class="form-control"
+                  placeholder="Enter your email"
+                  required
+                />
+                <i class="fas fa-envelope"></i>
+              </div>
+            </div>
+
+            <div class="form-group text-start">
+              <label for="role" class="form-label">I want to...</label>
+              <select id="role" name="role" class="form-control" required>
+                <option value="buyer">Buy Food (Individual)</option>
+                <option value="donor">Donate/Sell Food (Business)</option>
+                <option value="ngo">Request Food (NGO/Charity)</option>
+              </select>
+            </div>
+
+            <div class="form-group text-start">
+              <label for="password" class="form-label">Password</label>
+              <div class="input-group">
+                <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  class="form-control"
+                  placeholder="Create a password"
+                  required
+                />
+                <i class="fas fa-lock"></i>
+              </div>
+            </div>
+
+            <div class="form-group text-start">
+              <label for="confirm-password" class="form-label">Confirm Password</label>
+              <div class="input-group">
+                <input
+                  type="password"
+                  id="confirm-password"
+                  name="confirm-password"
+                  class="form-control"
+                  placeholder="Confirm your password"
+                  required
+                />
+                <i class="fas fa-check-circle"></i>
+              </div>
+            </div>
+
+            <div class="form-group text-start" style="font-size: 0.9rem;">
+              <label class="checkbox-item">
+                <input type="checkbox" required /> I agree to the <a href="#" style="color: var(--primary);">Terms & Conditions</a>
+              </label>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">
+              Create Account
+            </button>
+          </form>
+
+          <div class="auth-footer">
+            <p>Already have an account? <a href="login.html">Login</a></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer" style="margin-top: 0;">
+      <div class="container">
+        <div class="footer-grid">
+          <div>
+            <a
+              href="#"
+              class="logo"
+              style="color: white; margin-bottom: 20px; display: inline-block"
+            >
+              <span class="logo-icon">
+            <i class="fas fa-utensil-spoon"></i>
+            <i class="fas fa-utensil-fork"></i>
+          </span>
+          Navigi<span>Food</span>
+            </a>
+            <p style="color: #b0bec5">
+              Fighting food waste one meal at a time. Connecting communities
+              with quality surplus food.
+            </p>
+          </div>
+          <div>
+            <h3>Quick Links</h3>
+            <ul class="footer-links">
+              <li><a href="index.html">Home</a></li>
+              <li><a href="about.html">About Us</a></li>
+              <li><a href="browse-food.html">Browse Food</a></li>
+              <li><a href="contact.html">Contact</a></li>
+            </ul>
+          </div>
+          <div>
+            <h3>Partners</h3>
+            <ul class="footer-links">
+              <li><a href="restaurants.html">Restaurants</a></li>
+              <li><a href="hotels.html">Hotels</a></li>
+              <li><a href="bakeries.html">Bakeries</a></li>
+              <li><a href="donors.html">Become a Partner</a></li>
+            </ul>
+          </div>
+          <div>
+            <h3>Contact</h3>
+            <ul class="footer-links">
+              <li><i class="fas fa-envelope"></i> help@navigifood.com</li>
+              <li><i class="fas fa-phone"></i> +1 234 567 890</li>
+              <li>
+                <i class="fas fa-map-marker-alt"></i> 123 Green Street, Earth
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="copyright">
+          <p>&copy; 2026 NavigiFood. All rights reserved.</p>
+        </div>
+      </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script>
+      // Simple password match check
+      const form = document.querySelector('form');
+      form.addEventListener('submit', (e) => {
+        const password = document.getElementById('password').value;
+        const confirm = document.getElementById('confirm-password').value;
+        if (password !== confirm) {
+          e.preventDefault();
+          alert("Passwords do not match!");
+        }
+      });
+
+      // Pre-select role based on URL parameter
+      const urlParams = new URLSearchParams(window.location.search);
+      const role = urlParams.get('role');
+      if (role) {
+        const select = document.getElementById('role');
+        if (select) {
+           // Handle mapping if necessary, though direct mapping is used (donor/buyer)
+           // 'buyer' -> Buyer
+           // 'donor' -> Donor
+           // 'ngo' -> NGO
+           select.value = role;
+        }
+      }
+    </script>
+  </body>
+</html>

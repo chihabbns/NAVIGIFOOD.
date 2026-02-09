@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us - NavigiFood</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container nav-container">
+            <a href="index.html" class="logo">
+                <span class="logo-icon">
+            <i class="fas fa-utensil-spoon"></i>
+            <i class="fas fa-utensil-fork"></i>
+          </span>
+          Navigi<span>Food</span>
+            </a>
+            <div class="mobile-toggle" id="mobile-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+            <ul class="nav-links" id="nav-links">
+                <li><a href="index.html" class="nav-link">Home</a></li>
+                <li><a href="about.html" class="nav-link">About</a></li>
+                <li><a href="browse-food.html" class="nav-link">Browse Food</a></li>
+                <li><a href="donors.html" class="nav-link">Donors</a></li>
+                <li><a href="contact.html" class="nav-link active">Contact</a></li>
+                <li><a href="add-food.html" class="btn btn-primary btn-small">Donate Food</a></li>
+          </ul>
+        </div>
+    </nav>
+
+    <header class="section bg-light text-center">
+        <div class="container">
+            <h1>Get in Touch</h1>
+            <p>Have questions or suggestions? We'd love to hear from you.</p>
+        </div>
+    </header>
+
+    <section class="section">
+        <div class="container">
+            <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 50px;">
+                
+                <!-- Contact Form -->
+                <div>
+                    <h2 style="margin-bottom: 20px;">Send us a message</h2>
+                    <form action="#" class="contact-form">
+                        <div class="form-group">
+                            <label class="form-label" for="name">Your Name</label>
+                            <input type="text" id="name" class="form-control" placeholder="John Doe">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="email">Email Address</label>
+                            <input type="email" id="email" class="form-control" placeholder="john@example.com">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="subject">Subject</label>
+                            <select id="subject" class="form-control">
+                                <option>General Inquiry</option>
+                                <option>Partnership</option>
+                                <option>Support</option>
+                                <option>Feedback</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="message">Message</label>
+                            <textarea id="message" class="form-control" rows="5" placeholder="How can we help?"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Send Message</button>
+                    </form>
+                </div>
+
+                <!-- Contact Info -->
+                <div>
+                    <div style="background: var(--bg-white); padding: 30px; border-radius: var(--radius-md); box-shadow: var(--shadow-sm);">
+                        <h2 style="margin-bottom: 20px;">Contact Information</h2>
+                        
+                        <div style="margin-bottom: 20px;">
+                            <h4 class="text-primary"><i class="fas fa-map-marker-alt"></i> Location</h4>
+                            <p>123 Green Street, Suite 400<br>Eco City, Earth 12345</p>
+                        </div>
+
+                        <div style="margin-bottom: 20px;">
+                            <h4 class="text-primary"><i class="fas fa-envelope"></i> Email</h4>
+                            <p>help@navigifood.com<br>partners@navigifood.com</p>
+                        </div>
+
+                        <div style="margin-bottom: 20px;">
+                            <h4 class="text-primary"><i class="fas fa-phone"></i> Phone</h4>
+                            <p>+1 234 567 890<br>Mon-Fri, 9am - 6pm</p>
+                        </div>
+
+                        <div style="margin-top: 30px;">
+                            <h4>Follow Us</h4>
+                            <div style="display: flex; gap: 15px; font-size: 1.5rem; color: var(--primary);">
+                                <a href="#"><i class="fab fa-facebook"></i></a>
+                                <a href="#"><i class="fab fa-twitter"></i></a>
+                                <a href="#"><i class="fab fa-instagram"></i></a>
+                                <a href="#"><i class="fab fa-linkedin"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div>
+                    <a href="#" class="logo" style="color: white; margin-bottom: 20px; display: inline-block;">
+                        <span class="logo-icon">
+            <i class="fas fa-utensil-spoon"></i>
+            <i class="fas fa-utensil-fork"></i>
+          </span>
+          Navigi<span>Food</span>
+                    </a>
+                    <p style="color: #b0bec5;">Fighting food waste one meal at a time. Connecting communities with quality surplus food.</p>
+                </div>
+                <div>
+                    <h3>Quick Links</h3>
+                    <ul class="footer-links">
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="browse-food.html">Browse Food</a></li>
+                        <li><a href="contact.html">Contact</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3>Partners</h3>
+                    <ul class="footer-links">
+                        <li><a href="restaurants.html">Restaurants</a></li>
+                        <li><a href="hotels.html">Hotels</a></li>
+                        <li><a href="bakeries.html">Bakeries</a></li>
+                        <li><a href="donors.html">Become a Partner</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3>Contact</h3>
+                    <ul class="footer-links">
+                        <li><i class="fas fa-envelope"></i> help@navigifood.com</li>
+                        <li><i class="fas fa-phone"></i> +1 234 567 890</li>
+                        <li><i class="fas fa-map-marker-alt"></i> 123 Green Street, Earth</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>&copy; 2026 NavigiFood. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+</body>
+</html>

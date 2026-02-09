@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - NavigiFood</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container nav-container">
+            <a href="index.html" class="logo">
+                <span class="logo-icon">
+            <i class="fas fa-utensil-spoon"></i>
+            <i class="fas fa-utensil-fork"></i>
+          </span>
+          Navigi<span>Food</span>
+            </a>
+            <div class="mobile-toggle" id="mobile-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+            <ul class="nav-links" id="nav-links">
+                <li><a href="index.html" class="nav-link">Home</a></li>
+                <li><a href="about.html" class="nav-link active">About</a></li>
+                <li><a href="browse-food.html" class="nav-link">Browse Food</a></li>
+                <li><a href="donors.html" class="nav-link">Donors</a></li>
+                <li><a href="contact.html" class="nav-link">Contact</a></li>
+                <li><a href="add-food.html" class="btn btn-primary btn-small">Donate Food</a></li>
+          </ul>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <div class="container hero-content">
+            <h1>Our Mission</h1>
+            <p>We are on a mission to eliminate food waste and ensure everyone has access to affordable, high-quality meals.</p>
+        </div>
+    </header>
+
+    <section class="section">
+        <div class="container">
+            <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 60px; align-items: center;">
+                <div>
+                   <img src="assets/images/mission.jpg" alt="Our Mission" style="border-radius: var(--radius-md); box-shadow: var(--shadow-lg); width: 100%;">
+                </div>
+                <div>
+                    <h2 class="text-primary">Why NavigiFood?</h2>
+                    <p>Every year, millions of tons of edible food go to waste while millions of people struggle to afford meals. NavigiFood bridges this gap.</p>
+                    <p>By connecting restaurants, bakeries, and hotels with local communities, we turn potential waste into affordable meals. It's a win-win: businesses recover costs, and families get great food for less.</p>
+                    <ul style="margin-top: 20px; list-style-type: none;">
+                        <li style="margin-bottom: 10px;"><i class="fas fa-check-circle text-primary"></i> Reduce environmental impact</li>
+                        <li style="margin-bottom: 10px;"><i class="fas fa-check-circle text-primary"></i> Support local businesses</li>
+                        <li style="margin-bottom: 10px;"><i class="fas fa-check-circle text-primary"></i> Fight hunger and food insecurity</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section" style="background: white;">
+        <div class="container text-center">
+            <h2>Our Impact</h2>
+            <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-top: 40px;">
+                <div class="card card-body" style="border: none; box-shadow: none;">
+                    <i class="fas fa-utensils fa-3x text-primary" style="margin-bottom: 15px;"></i>
+                    <h3>10,000+</h3>
+                    <p>Meals Saved</p>
+                </div>
+                <div class="card card-body" style="border: none; box-shadow: none;">
+                    <i class="fas fa-users fa-3x text-primary" style="margin-bottom: 15px;"></i>
+                    <h3>5,000+</h3>
+                    <p>Happy Users</p>
+                </div>
+                <div class="card card-body" style="border: none; box-shadow: none;">
+                    <i class="fas fa-store fa-3x text-primary" style="margin-bottom: 15px;"></i>
+                    <h3>500+</h3>
+                    <p>Partners</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div>
+                    <a href="#" class="logo" style="color: white; margin-bottom: 20px; display: inline-block;">
+                        <span class="logo-icon">
+            <i class="fas fa-utensil-spoon"></i>
+            <i class="fas fa-utensil-fork"></i>
+          </span>
+          Navigi<span>Food</span>
+                    </a>
+                    <p style="color: #b0bec5;">Fighting food waste one meal at a time. Connecting communities with quality surplus food.</p>
+                </div>
+                <div>
+                    <h3>Quick Links</h3>
+                    <ul class="footer-links">
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="browse-food.html">Browse Food</a></li>
+                        <li><a href="contact.html">Contact</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3>Partners</h3>
+                    <ul class="footer-links">
+                        <li><a href="restaurants.html">Restaurants</a></li>
+                        <li><a href="hotels.html">Hotels</a></li>
+                        <li><a href="bakeries.html">Bakeries</a></li>
+                        <li><a href="donors.html">Become a Partner</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3>Contact</h3>
+                    <ul class="footer-links">
+                        <li><i class="fas fa-envelope"></i> help@navigifood.com</li>
+                        <li><i class="fas fa-phone"></i> +1 234 567 890</li>
+                        <li><i class="fas fa-map-marker-alt"></i> 123 Green Street, Earth</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>&copy; 2026 NavigiFood. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+</body>
+</html>

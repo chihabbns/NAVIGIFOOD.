@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hotels - NavigiFood</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container nav-container">
+            <a href="index.html" class="logo">
+                <span class="logo-icon">
+            <i class="fas fa-utensil-spoon"></i>
+            <i class="fas fa-utensil-fork"></i>
+          </span>
+          Navigi<span>Food</span>
+            </a>
+            <div class="mobile-toggle" id="mobile-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+            <ul class="nav-links" id="nav-links">
+                <li><a href="index.html" class="nav-link">Home</a></li>
+                <li><a href="about.html" class="nav-link">About</a></li>
+                <li><a href="browse-food.html" class="nav-link active">Browse Food</a></li>
+                <li><a href="donors.html" class="nav-link">Donors</a></li>
+                <li><a href="contact.html" class="nav-link">Contact</a></li>
+                <li><a href="add-food.html" class="btn btn-primary btn-small">Donate Food</a></li>
+          </ul>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <header class="section bg-light text-center">
+        <div class="container">
+            <h1>Hotel Surplus</h1>
+            <p>Quality surplus food from premium hotels.</p>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <section class="section">
+        <div class="container">
+             <div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));" id="category-page-grid" data-category="Hotel">
+                <!-- Items injected by JS -->
+                <p>Loading items...</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div>
+                    <a href="#" class="logo" style="color: white; margin-bottom: 20px; display: inline-block;">
+                        <span class="logo-icon">
+            <i class="fas fa-utensil-spoon"></i>
+            <i class="fas fa-utensil-fork"></i>
+          </span>
+          Navigi<span>Food</span>
+                    </a>
+                    <p style="color: #b0bec5;">Fighting food waste one meal at a time. Connecting communities with quality surplus food.</p>
+                </div>
+                <div>
+                    <h3>Quick Links</h3>
+                    <ul class="footer-links">
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="browse-food.html">Browse Food</a></li>
+                        <li><a href="contact.html">Contact</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3>Partners</h3>
+                    <ul class="footer-links">
+                        <li><a href="restaurants.html">Restaurants</a></li>
+                        <li><a href="hotels.html">Hotels</a></li>
+                        <li><a href="bakeries.html">Bakeries</a></li>
+                        <li><a href="donors.html">Become a Partner</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3>Contact</h3>
+                    <ul class="footer-links">
+                        <li><i class="fas fa-envelope"></i> help@navigifood.com</li>
+                        <li><i class="fas fa-phone"></i> +1 234 567 890</li>
+                        <li><i class="fas fa-map-marker-alt"></i> 123 Green Street, Earth</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>&copy; 2026 NavigiFood. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/data.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

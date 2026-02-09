@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - NavigiFood</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container nav-container">
+            <a href="index.html" class="logo">
+                <span class="logo-icon">
+            <i class="fas fa-utensil-spoon"></i>
+            <i class="fas fa-utensil-fork"></i>
+          </span>
+          Navigi<span>Food</span>
+            </a>
+            <div class="mobile-toggle" id="mobile-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+            <ul class="nav-links" id="nav-links">
+                <li><a href="index.html" class="nav-link">Home</a></li>
+                <li><a href="about.html" class="nav-link">About</a></li>
+                <li><a href="browse-food.html" class="nav-link">Browse Food</a></li>
+                <li><a href="contact.html" class="nav-link">Contact</a></li>
+                <li><a href="add-food.html" class="btn btn-primary btn-small">Donate Food</a></li>
+          </ul>
+        </div>
+    </nav>
+
+    <div class="section">
+        <div class="container">
+            <div class="grid" style="grid-template-columns: 250px 1fr; gap: 40px; align-items: start;">
+                
+                <!-- Sidebar -->
+                <aside class="sidebar">
+                    <div style="text-align: center; padding-bottom: 20px; border-bottom: 1px solid var(--border-color); margin-bottom: 20px;">
+                        <div style="width: 80px; height: 80px; background: #ddd; border-radius: 50%; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: #fff; background-color: var(--primary);">
+                            <i class="fas fa-store"></i>
+                        </div>
+                        <h3>Maison Amoud</h3>
+                        <p>Partner Bakery</p>
+                    </div>
+                    <ul style="list-style: none;">
+                        <li style="margin-bottom: 15px;">
+                            <a href="#" class="nav-link-item active" onclick="showTab('overview')"><i class="fas fa-th-large" style="width: 25px;"></i> Overview</a>
+                        </li>
+                        <li style="margin-bottom: 15px;">
+                            <a href="#" class="nav-link-item" onclick="showTab('add-dish')"><i class="fas fa-plus-circle" style="width: 25px;"></i> Add Dish</a>
+                        </li>
+                        <li style="margin-bottom: 15px;">
+                            <a href="#" class="nav-link-item" onclick="showTab('manage-orders')"><i class="fas fa-receipt" style="width: 25px;"></i> Manage Orders</a>
+                        </li>
+                        <li style="margin-top: 30px;">
+                            <a href="index.html" style="color: var(--danger);"><i class="fas fa-sign-out-alt" style="width: 25px;"></i> Logout</a>
+                        </li>
+                    </ul>
+                </aside>
+
+                <!-- Dashboard Content -->
+                <div>
+                    
+                    <!-- Overview Tab -->
+                    <div id="overview" class="dashboard-tab active">
+                        <h1 style="margin-bottom: 30px;">Dashboard Overview</h1>
+                        
+                        <!-- Stats -->
+                        <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 40px;">
+                             <div class="card card-body" style="text-align: center;">
+                                <h2 class="text-primary">8</h2>
+                                <p>Active Dishes</p>
+                             </div>
+                             <div class="card card-body" style="text-align: center;">
+                                <h2 class="text-primary">3</h2>
+                                <p>Pending Orders</p>
+                             </div>
+                             <div class="card card-body" style="text-align: center;">
+                                <h2 class="text-primary">12,500 DA</h2>
+                                <p>Total Revenue</p>
+                             </div>
+                        </div>
+
+                        <!-- Recent Listings -->
+                        <div class="card">
+                            <div class="card-body">
+                                <h3 style="margin-bottom: 20px;">Your Active Listings</h3>
+                                <table style="width: 100%; border-collapse: collapse;">
+                                    <thead>
+                                        <tr style="text-align: left; border-bottom: 2px solid var(--border-color);">
+                                            <th style="padding: 10px;">Dish</th>
+                                            <th style="padding: 10px;">Status</th>
+                                            <th style="padding: 10px;">Boosted</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="listings-table">
+                                        <!-- Populated via JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Add Dish Tab -->
+                    <div id="add-dish" class="dashboard-tab">
+                        <h1 style="margin-bottom: 30px;">Add New Dish</h1>
+                        <div class="card card-body">
+                            <form id="add-dish-form">
+                                <div class="form-group">
+                                    <label class="form-label">Dish Name</label>
+                                    <input type="text" id="dish-name" class="form-control" placeholder="e.g. Mhajeb Box" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Description (Darja recommended)</label>
+                                    <textarea id="dish-desc" class="form-control" rows="3" placeholder="Describe the dish..." required></textarea>
+                                </div>
+                                <div class="grid" style="grid-template-columns: 1fr 1fr;">
+                                    <div class="form-group">
+                                        <label class="form-label">Original Price (DA)</label>
+                                        <input type="number" id="dish-original-price" class="form-control" placeholder="1000" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Selling Price (DA)</label>
+                                        <input type="number" id="dish-price" class="form-control" placeholder="500" required>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Upload Image URL</label>
+                                    <input type="url" id="dish-image" class="form-control" placeholder="https://example.com/image.jpg">
+                                </div>
+                                
+                                <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px;">
+                                    <button type="button" onclick="handlePublishFree()" class="btn btn-outline" style="width: 100%;">
+                                        Publish (Free)
+                                    </button>
+                                    
+                                    <button type="button" onclick="handlePublishBoost()" class="btn btn-primary" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; background: linear-gradient(45deg, #FFD700, #FFA500); color: black; border: none;">
+                                        <i class="fas fa-rocket"></i> Publish & Boost (200 DA)
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Manage Orders Tab -->
+                    <div id="manage-orders" class="dashboard-tab">
+                        <h1 style="margin-bottom: 30px;">Manage Orders</h1>
+                        <div id="orders-list">
+                            <!-- Populated via JS -->
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div id="payment-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closePaymentModal()">&times;</span>
+            <h2 style="margin-bottom: 20px;">Boost Payment</h2>
+            <p style="margin-bottom: 30px;">Confirm your payment of <strong>200 DA</strong> to boost this listing.</p>
+            
+            <div style="padding: 20px; background: #f8f9fa; border-radius: 8px; margin-bottom: 20px; text-align: center;">
+                <i class="fas fa-credit-card" style="font-size: 2rem; color: var(--primary); margin-bottom: 10px;"></i>
+                <p>Secure Payment Gateway</p>
+            </div>
+
+            <button onclick="processPayment()" class="btn btn-primary" style="width: 100%; margin-top: 20px;">Confirm Payment</button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="copyright">
+                <p>&copy; 2026 NavigiFood. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/data.js"></script>
+    <script src="js/main.js"></script>
+    
+    <script>
+        // Tab Switching Logic
+        function showTab(tabId) {
+            // Hide all tabs
+            document.querySelectorAll('.dashboard-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            // Show target tab
+            document.getElementById(tabId).classList.add('active');
+            
+            // Update sidebar active state
+            document.querySelectorAll('.nav-link-item').forEach(link => {
+                link.classList.remove('active'); // simplified for demo
+            });
+        }
+
+        // Mock Data for Orders
+        const mockOrders = [
+            { id: 101, item: "Assorted Pastries Box", customer: "Ahmed Benali", time: "10 mins ago", status: "Pending" },
+            { id: 102, item: "Vegetarian Pizza XL", customer: "Sarah K.", time: "1 hour ago", status: "Pending" },
+            { id: 103, item: "Couscous Royal", customer: "Karim Z.", time: "2 hours ago", status: "Given" }
+        ];
+
+        // Mock Data for Listings
+        const myListings = [
+            { title: "Assorted Pastries Box", status: "Active", boosted: true },
+            { title: "Vegetarian Pizza XL", status: "Active", boosted: false },
+            { title: "Couscous Royal", status: "Active", boosted: true }
+        ];
+
+        // Render functions
+        function renderOrders() {
+            const container = document.getElementById('orders-list');
+            container.innerHTML = mockOrders.map(order => `
+                <div class="order-card">
+                    <div>
+                        <h3>${order.item}</h3>
+                        <p style="font-size: 0.9rem; color: gray;">Ordered by <strong style="color: var(--text-main);">${order.customer}</strong> • ${order.time}</p>
+                        <span class="badge" style="background: ${order.status === 'Pending' ? '#fff3cd' : '#d4edda'}; color: ${order.status === 'Pending' ? '#856404' : '#155724'};">${order.status}</span>
+                    </div>
+                    ${order.status === 'Pending' ? `
+                    <div class="order-actions">
+                        <button onclick="updateOrderStatus(${order.id}, 'Accepted')" class="btn btn-success btn-small" style="background-color: var(--success); color: white; border: none;">Accept</button>
+                        <button onclick="updateOrderStatus(${order.id}, 'Rejected')" class="btn btn-danger btn-small" style="background-color: var(--danger); color: white; border: none;">Reject</button>
+                    </div>` : ''}
+                </div>
+            `).join('');
+        }
+
+        function renderListings() {
+            const container = document.getElementById('listings-table');
+            container.innerHTML = myListings.map(listing => `
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="padding: 10px;">${listing.title}</td>
+                    <td style="padding: 10px;"><span style="color: var(--success); font-weight: 500;">${listing.status}</span></td>
+                    <td style="padding: 10px;">
+                        ${listing.boosted ? '<i class="fas fa-check-circle text-primary"></i> <span style="font-size: 0.8rem;">Yes</span>' : '<span style="color: gray;">No</span>'}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function updateOrderStatus(id, status) {
+            const orderIndex = mockOrders.findIndex(o => o.id === id);
+            if(orderIndex > -1) {
+                mockOrders[orderIndex].status = status;
+                alert(`Order #${id} has been ${status}.`);
+                renderOrders();
+            }
+        }
+
+        // Add Dish & Payment Logic
+        let selectedPaymentMethod = null;
+
+        document.getElementById('add-dish-form').addEventListener('submit', (e) => {
+             e.preventDefault(); // Prevent default submission
+             // Logic is now handled by buttons directly
+        });
+
+        function handlePublishFree() {
+             if(validateForm()) {
+                publishDish(false);
+             }
+        }
+
+        function handlePublishBoost() {
+             if(validateForm()) {
+                document.getElementById('payment-modal').style.display = 'flex';
+             }
+        }
+
+        function validateForm() {
+            const name = document.getElementById('dish-name').value;
+            const price = document.getElementById('dish-price').value;
+             if(!name || !price) {
+                 alert("Please fill in the dish name and price.");
+                 return false;
+             }
+             return true;
+        }
+
+        function closePaymentModal() {
+            document.getElementById('payment-modal').style.display = 'none';
+        }
+
+        function selectPayment(element, method) {
+            document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected');
+            selectedPaymentMethod = method;
+        }
+
+        function processPayment() {
+            // Simulate payment processing
+            // In a real app, this would redirect to a payment gateway
+            alert(`Payment of 200 DA successful! Your dish will be boosted.`);
+            closePaymentModal();
+            publishDish(true);
+        }
+
+        function publishDish(boosted) {
+            const name = document.getElementById('dish-name').value;
+            // Add new dish to our mock list
+            myListings.unshift({ title: name, status: "Active", boosted: boosted });
+            renderListings();
+            alert(`"${name}" has been published successfully${boosted ? ' and boosted!' : '.'}`);
+            showTab('overview');
+            document.getElementById('add-dish-form').reset();
+        }
+
+        // Initial Render
+        document.addEventListener('DOMContentLoaded', () => {
+            renderOrders();
+            renderListings();
+        });
+
+    </script>
+</body>
+</html>

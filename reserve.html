@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reserve Order - NavigiFood</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    <!-- Navbar -->
+    <nav class="navbar">
+      <div class="container nav-container">
+        <a href="index.html" class="logo">
+          <span class="logo-icon">
+            <i class="fas fa-utensil-spoon"></i>
+            <i class="fas fa-utensil-fork"></i>
+          </span>
+          Navigi<span>Food</span>
+        </a>
+        <div class="mobile-toggle" id="mobile-toggle">
+          <i class="fas fa-bars"></i>
+        </div>
+        <ul class="nav-links" id="nav-links">
+          <li><a href="index.html" class="nav-link">Home</a></li>
+          <li><a href="about.html" class="nav-link">About</a></li>
+          <li><a href="browse-food.html" class="nav-link">Browse Food</a></li>
+          <li><a href="donors.html" class="nav-link">Donors</a></li>
+          <li><a href="contact.html" class="nav-link">Contact</a></li>
+          <li>
+            <a href="join.html" class="btn btn-primary btn-small">Get Started</a>
+          </li>
+          </ul>
+      </div>
+    </nav>
+
+    <!-- Reserve Section -->
+    <section class="section">
+      <div class="container">
+        <h2 class="text-center" style="margin-bottom: 40px;">Complete Reservation</h2>
+        
+        <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px;">
+          <!-- Item Summary -->
+          <div class="content-box">
+            <h3>Order Summary</h3>
+            <div id="reserve-item-summary">
+              <!-- Item details loaded by JS -->
+              <p>Loading item details...</p>
+            </div>
+          </div>
+
+          <!-- User Details / Form -->
+          <div class="content-box">
+            <h3>Pickup Details</h3>
+            <form id="reserve-form">
+              <div class="form-group text-start">
+                <label for="name" class="form-label">Full Name</label>
+                <div class="input-group">
+                    <input type="text" id="name" class="form-control" required placeholder="John Doe">
+                    <i class="fas fa-user"></i>
+                </div>
+              </div>
+              <div class="form-group text-start">
+                <label for="phone" class="form-label">Phone Number</label>
+                <div class="input-group">
+                    <input type="tel" id="phone" class="form-control" required placeholder="055 123 4567">
+                    <i class="fas fa-phone"></i>
+                </div>
+              </div>
+              <div class="form-group text-start">
+                <label for="pickup-time" class="form-label">Preferred Pickup Time</label>
+                <div class="input-group">
+                    <input type="time" id="pickup-time" class="form-control" required>
+                    <i class="fas fa-clock"></i>
+                </div>
+              </div>
+              
+              <div class="form-group">
+                <label class="checkbox-item">
+                    <input type="checkbox" required> I agree to pick up the order within the specified time.
+                </label>
+              </div>
+
+              <button type="submit" class="btn btn-primary btn-block">Confirmer Réservation</button>
+
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-grid">
+          <div>
+            <a href="#" class="logo" style="color: white; margin-bottom: 20px; display: inline-block">
+              <span class="logo-icon">
+            <i class="fas fa-utensil-spoon"></i>
+            <i class="fas fa-utensil-fork"></i>
+          </span>
+          Navigi<span>Food</span>
+            </a>
+            <p style="color: #b0bec5">Fighting food waste one meal at a time. Connecting communities with quality surplus food.</p>
+          </div>
+          <div>
+            <h3>Quick Links</h3>
+            <ul class="footer-links">
+              <li><a href="index.html">Home</a></li>
+              <li><a href="about.html">About Us</a></li>
+              <li><a href="browse-food.html">Browse Food</a></li>
+              <li><a href="contact.html">Contact</a></li>
+            </ul>
+          </div>
+          <div>
+            <h3>Partners</h3>
+            <ul class="footer-links">
+              <li><a href="restaurants.html">Restaurants</a></li>
+              <li><a href="hotels.html">Hotels</a></li>
+              <li><a href="bakeries.html">Bakeries</a></li>
+              <li><a href="donors.html">Become a Partner</a></li>
+            </ul>
+          </div>
+          <div>
+            <h3>Contact</h3>
+            <ul class="footer-links">
+                <li><i class="fas fa-envelope"></i> help@navigifood.com</li>
+                <li><i class="fas fa-phone"></i> +1 234 567 890</li>
+                <li><i class="fas fa-map-marker-alt"></i> 123 Green Street, Earth</li>
+            </ul>
+          </div>
+        </div>
+        <div class="copyright">
+          <p>&copy; 2026 NavigiFood. All rights reserved.</p>
+        </div>
+      </div>
+    </footer>
+
+    <script src="js/data.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+      // Page specific logic to load item details
+      document.addEventListener('DOMContentLoaded', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const id = parseInt(urlParams.get('id'));
+        const summaryContainer = document.getElementById('reserve-item-summary');
+        
+        if (id && typeof foodItems !== 'undefined') {
+            const item = foodItems.find(i => i.id === id);
+            if (item) {
+                summaryContainer.innerHTML = `
+                    <div class="item-summary">
+                        <img src="${item.image}" alt="${item.title}">
+                        <div>
+                            <h3>${item.title}</h3>
+                            <p class="text-primary"><i class="fas fa-store"></i> ${item.donor}</p>
+                            <span class="price">${item.price.toFixed(0)} DA</span>
+                            <span style="font-size: 0.9rem; text-decoration: line-through; color: var(--text-gray); margin-left: 10px;">${item.originalPrice.toFixed(0)} DA</span>
+                        </div>
+                    </div>
+                    <div>
+                        <p><i class="fas fa-map-marker-alt text-primary"></i> <strong>Location:</strong> ${item.location}</p>
+                        <p><i class="fas fa-clock text-danger"></i> <strong>Must be picked up by:</strong> ${item.timeLeft}</p>
+                    </div>
+                `;
+            } else {
+                summaryContainer.innerHTML = '<p>Item not found.</p>';
+            }
+        } else {
+            summaryContainer.innerHTML = '<p>No item selected.</p>';
+        }
+
+        // Handle form submission
+        // Handle form submission
+        document.getElementById('reserve-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            alert('Réservation Confirmée! Un email de confirmation vous sera envoyé.');
+            window.location.href = 'index.html'; // Redirect to home
+        });
+      });
+    </script>
+  </body>
+</html>
