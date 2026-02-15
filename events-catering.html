@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Post surplus food from events, weddings, and parties. Connect with those in need and reduce waste." />
+    <title>Events & Catering - NavigiFood</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container nav-container">
+            <a href="index.html" class="logo">
+                <span class="logo-icon">
+                    <i class="fas fa-utensil-spoon"></i>
+                    <i class="fas fa-utensil-fork"></i>
+                </span>
+                <span class="logo-text">Navigi<span>Food</span></span>
+            </a>
+            <div class="mobile-toggle" id="mobile-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+            <ul class="nav-links" id="nav-links">
+                <li><a href="index.html" class="nav-link">Home</a></li>
+                <li><a href="about.html" class="nav-link">About</a></li>
+                <li><a href="browse-food.html" class="nav-link">Browse Food</a></li>
+                <li><a href="donors.html" class="nav-link">Donors</a></li>
+                <li><a href="contact.html" class="nav-link">Contact</a></li>
+                <li><a href="add-food.html" class="btn btn-primary btn-small">Donate Food</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <header class="section bg-light text-center">
+        <div class="container">
+            <h1 class="mb-20">Events & Catering Surplus</h1>
+            <p>Have leftover food from a wedding, party, or corporate event? Share it with the community.</p>
+            <div class="mt-20">
+                <a href="browse-food.html?category=Events" class="btn btn-outline btn-small">Looking to buy event surplus? Click here.</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <section class="section">
+        <div class="container">
+            <div class="grid grid-sidebar gap-40 align-start">
+                
+                <!-- Food Safety Guidelines Sidebar -->
+                <aside class="sidebar bg-white p-30 rounded-md shadow-sm">
+                    <h3 class="mb-20 text-primary"><i class="fas fa-shield-alt"></i> Safety Guidelines</h3>
+                    <ul class="list-none text-sm text-gray">
+                        <li class="mb-15"><i class="fas fa-check text-success mr-10"></i> Food must be handled with gloves and clean utensils.</li>
+                        <li class="mb-15"><i class="fas fa-check text-success mr-10"></i> Hot food must be kept above 60°C until pickup.</li>
+                        <li class="mb-15"><i class="fas fa-check text-success mr-10"></i> Cold food must be kept below 5°C.</li>
+                        <li class="mb-15"><i class="fas fa-check text-success mr-10"></i> Do not donate food that has been exposed to guests for long periods (e.g., opened buffets without sneeze guards).</li>
+                        <li class="mb-15"><i class="fas fa-check text-success mr-10"></i> Label all allergens clearly.</li>
+                        <li class="mb-15"><i class="fas fa-clock text-warning mr-10"></i> Donate within 2 hours of preparation for best quality.</li>
+                    </ul>
+                </aside>
+
+                <!-- Post Food Form -->
+                <div class="card card-body">
+                    <h2 class="mb-30">Post Event Surplus</h2>
+                    <form onsubmit="event.preventDefault(); alert('Thank you! Your listing has been submitted for review.'); window.location.href='index.html';">
+                        
+                        <div class="form-group">
+                            <label class="form-label">Event/Organizer Name</label>
+                            <input type="text" class="form-control" placeholder="e.g. Smith Wedding, Corporate Gala" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Food Description</label>
+                            <textarea class="form-control" rows="4" placeholder="Describe the food items available (e.g., 5 trays of lasagna, 20 servings of grilled chicken)..." required></textarea>
+                        </div>
+
+                        <div class="grid grid-fit-250 gap-20">
+                            <div class="form-group">
+                                <label class="form-label">Quantity (Servings/Trays)</label>
+                                <input type="text" class="form-control" placeholder="e.g. 50 servings" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Preparation Date & Time</label>
+                                <input type="datetime-local" class="form-control" required>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-fit-250 gap-20">
+                            <div class="form-group">
+                                <label class="form-label">Expiration/Best Before</label>
+                                <input type="datetime-local" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Pickup Location</label>
+                                <input type="text" class="form-control" placeholder="Full Address" required>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-fit-250 gap-20">
+                            <div class="form-group">
+                                <label class="form-label">Contact Name</label>
+                                <input type="text" class="form-control" placeholder="Your Name" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Phone Number</label>
+                                <input type="tel" class="form-control" placeholder="+213..." required>
+                            </div>
+                        </div>
+
+                        <div class="form-group mt-20">
+                            <label class="checkbox-item">
+                                <input type="checkbox" required>
+                                <span>I certify that this food has been handled safely and meets the guidelines listed.</span>
+                            </label>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 mt-20">Submit Listing</button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div>
+                    <a href="#" class="logo text-white mb-20 d-inline-block">
+                        <span class="logo-icon">
+                            <i class="fas fa-utensil-spoon"></i>
+                            <i class="fas fa-utensil-fork"></i>
+                        </span>
+                        <span class="logo-text">Navigi<span>Food</span></span>
+                    </a>
+                    <p class="text-light-gray">Fighting food waste one meal at a time. Connecting communities with quality surplus food.</p>
+                </div>
+                <div>
+                    <h3>Quick Links</h3>
+                    <ul class="footer-links">
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="browse-food.html">Browse Food</a></li>
+                        <li><a href="contact.html">Contact</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3>Partners</h3>
+                    <ul class="footer-links">
+                        <li><a href="restaurants.html">Restaurants</a></li>
+                        <li><a href="hotels.html">Hotels</a></li>
+                        <li><a href="bakeries.html">Bakeries</a></li>
+                        <li><a href="events-catering.html">Events & Catering</a></li>
+                        <li><a href="donors.html">Become a Partner</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3>Contact</h3>
+                    <ul class="footer-links">
+                        <li><i class="fas fa-envelope"></i> help@navigifood.com</li>
+                        <li><i class="fas fa-phone"></i> +1 234 567 890</li>
+                        <li><i class="fas fa-map-marker-alt"></i> 123 Green Street, Earth</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>&copy; 2026 NavigiFood. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+</body>
+</html>

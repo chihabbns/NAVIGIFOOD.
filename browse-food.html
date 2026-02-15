@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Browse surplus food at reduced prices from local hotels, restaurants, and bakeries. Save money and help the planet." />
     <title>Browse Food - NavigiFood</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -39,11 +40,13 @@
             <div class="browse-header">
                 <h1 class="text-center">Browse Surplus Food</h1>
                 <p class="text-center">Find delicious food at amazing discounts from local businesses</p>
+                
+
             </div>
 
             <!-- Filters -->
             <div class="filters-section">
-                <div class="grid" style="grid-template-columns: 1fr 3fr;">
+                <div class="grid grid-sidebar">
                     <div class="sidebar">
                         <div class="filter-group">
                             <h3 class="filter-title">Category</h3>
@@ -72,7 +75,7 @@
 
                     <!-- Food Grid -->
                     <div class="food-grid-container">
-                        <div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));" id="browse-grid">
+                        <div class="grid grid-fill-280" id="browse-grid">
                             <!-- Items injected by JS -->
                         </div>
                     </div>
@@ -86,14 +89,14 @@
         <div class="container">
             <div class="footer-grid">
                 <div>
-                    <a href="#" class="logo" style="color: white; margin-bottom: 20px; display: inline-block;">
+                    <a href="#" class="logo text-white mb-20 d-inline-block">
                         <span class="logo-icon">
             <i class="fas fa-utensil-spoon"></i>
             <i class="fas fa-utensil-fork"></i>
           </span>
           <span class="logo-text">Navigi<span>Food</span></span>
                     </a>
-                    <p style="color: #b0bec5;">Fighting food waste one meal at a time. Connecting communities with quality surplus food.</p>
+                    <p class="text-light-gray">Fighting food waste one meal at a time. Connecting communities with quality surplus food.</p>
                 </div>
                 <div>
                     <h3>Quick Links</h3>
@@ -110,6 +113,7 @@
                         <li><a href="restaurants.html">Restaurants</a></li>
                         <li><a href="hotels.html">Hotels</a></li>
                         <li><a href="bakeries.html">Bakeries</a></li>
+                        <li><a href="events-catering.html">Events & Catering</a></li>
                         <li><a href="donors.html">Become a Partner</a></li>
                     </ul>
                 </div>

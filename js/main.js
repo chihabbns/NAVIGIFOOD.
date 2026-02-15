@@ -6,7 +6,33 @@ document.addEventListener('DOMContentLoaded', () => {
     initBrowsePage();
     initDetailsPage();
     initCategoryPages();
+    checkAuth();
 });
+
+function checkAuth() {
+    const session = JSON.parse(localStorage.getItem('navigi_session'));
+    const navLinks = document.getElementById('nav-links');
+    
+    if (session && session.expiry > Date.now() && navLinks) {
+        const user = session.user;
+        // Target the last list item (usually the CTA button)
+        const lastLi = navLinks.lastElementChild;
+        
+        if (lastLi) {
+            lastLi.innerHTML = `
+                <a href="#" class="btn btn-outline btn-small" onclick="logout(event)">
+                    <i class="fas fa-sign-out-alt"></i> Logout (${user.name.split(' ')[0]})
+                </a>
+            `;
+        }
+    }
+}
+
+function logout(e) {
+    if(e) e.preventDefault();
+    localStorage.removeItem('navigi_session');
+    window.location.href = 'index.html';
+}
 
 function initMobileMenu() {
     const toggle = document.getElementById('mobile-toggle');

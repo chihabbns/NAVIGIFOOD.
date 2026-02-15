@@ -6,11 +6,10 @@ const foodItems = [
     type: "Bakery",
     price: 1500,
     originalPrice: 2500,
-    image: "https://images.unsplash.com/photo-1589119908995-c6837fa14848?auto=format&fit=crop&w=800&q=80", // Baklawa/Sweets
+    image: "https://images.unsplash.com/photo-1559500186-6361a94a4855?auto=format&fit=crop&w=800&q=80", // Baklava
     location: "Sidi Yahia, Algiers",
     timeLeft: "2 hours",
-    description:
-      "بواطة بقلاوة و مقروط و تشاراك، خدمة تاع الدار و بنينة.",
+    description: "Box of baklava, makrout, and tcharek. Homemade style and delicious.",
     promoted: true,
     paymentMethods: ["BaridiMob", "CIB"],
   },
@@ -21,11 +20,10 @@ const foodItems = [
     type: "Restaurant",
     price: 600,
     originalPrice: 1200,
-    image: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=800&q=80", // Pizza
+    image: "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=800&q=80", // Pizza
     location: "8 Bd de la Soummam, Oran",
     timeLeft: "4 hours",
-    description:
-      "بيتزا كاري و كوكا سخونة، معمّرة فرماج و زيتون.",
+    description: "Square pizza and hot Coca-Cola, full of cheese and olives.",
     promoted: false,
     paymentMethods: ["Cash"],
   },
@@ -36,11 +34,10 @@ const foodItems = [
     type: "Hotel",
     price: 800,
     originalPrice: 2000,
-    image: "https://th.bing.com/th/id/OIP.U4k-YwG-G5hJ_A3tG-V-VAHaE8?rs=1&pid=ImgDetMain", // Mhajeb
+    image: "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?auto=format&fit=crop&w=800&q=80", // Flatbread/Mhajeb visual
     location: "Cité universitaire Zouaghi, Constantine",
     timeLeft: "1 hour",
-    description:
-      "دوزان محاجب حارين و سخونين، بقاو من فطور الصباح.",
+    description: "Spicy and hot Mhajeb box, leftover from breakfast buffet.",
     promoted: true,
     paymentMethods: ["BaridiMob", "CIB", "Cash"],
   },
@@ -51,10 +48,10 @@ const foodItems = [
     type: "NGO",
     price: 300,
     originalPrice: 1000,
-    image: "https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=800&q=80", // Vegetables
+    image: "https://images.unsplash.com/photo-1566385101042-1a0aa0c1268c?auto=format&fit=crop&w=800&q=80", // Vegetables
     location: "Boufarik, Blida",
     timeLeft: "1 day",
-    description: "خضرة طرية من الجنان: طوماطيش، خيار، و زرودية.",
+    description: "Fresh vegetables from the garden: tomatoes, cucumbers, and carrots.",
     promoted: false,
     paymentMethods: ["Cash"],
   },
@@ -68,8 +65,7 @@ const foodItems = [
     image: "https://images.unsplash.com/photo-1585937421612-70a008356f36?auto=format&fit=crop&w=800&q=80", // Couscous
     location: "Route du Cap de Garde, Annaba",
     timeLeft: "30 mins",
-    description:
-      "قصعة طعام (كسكسي) باللحم و الخضرة، همة و شان.",
+    description: "Royal Couscous with meat and vegetables, premium quality.",
     promoted: true,
     paymentMethods: ["CIB", "BaridiMob"],
   },
@@ -80,11 +76,10 @@ const foodItems = [
     type: "Bakery",
     price: 200,
     originalPrice: 500,
-    image: "https://images.unsplash.com/photo-1626202492176-b333a824e931?auto=format&fit=crop&w=800&q=80", // Flatbread
+    image: "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=800&q=80", // Bread
     location: "El Eulma, Sétif",
     timeLeft: "3 hours",
-    description:
-      "مطلوع و كسرة تاع الطاجين، سخونين و طرايا.",
+    description: "Matlouh and Kesra, hot and fresh from the oven.",
     promoted: false,
     paymentMethods: ["Cash"],
   },
@@ -94,5 +89,6 @@ const categories = [
   { name: "Restaurants", icon: "fas fa-utensils", link: "restaurants.html" },
   { name: "Hotels", icon: "fas fa-hotel", link: "hotels.html" },
   { name: "Bakeries", icon: "fas fa-bread-slice", link: "bakeries.html" },
+  { name: "Events & Catering", icon: "fas fa-glass-cheers", link: "events-catering.html" },
   { name: "NGOs", icon: "fas fa-hand-holding-heart", link: "ngo.html" },
 ];
