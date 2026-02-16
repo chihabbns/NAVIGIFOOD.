@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     configureDashboardForRole(user.role);
 
     // Initial Render
-    if (user.role === 'buyer') {
+    if (user.role === 'buyer' || user.role === 'ngo') {
         renderRequests();
     } else {
         renderOrders();
@@ -33,7 +33,8 @@ function updateUserProfile(user) {
 
     // Optional: Update avatar based on role
     const avatarIcon = document.getElementById('user-avatar-icon');
-    if(user.role === 'donor') avatarIcon.className = 'fas fa-store';
+
+    if(['donor', 'restaurant', 'hotel', 'bakery', 'market', 'catering'].includes(user.role)) avatarIcon.className = 'fas fa-store';
     else if(user.role === 'ngo') avatarIcon.className = 'fas fa-hand-holding-heart';
     else avatarIcon.className = 'fas fa-user';
 }
@@ -46,17 +47,17 @@ function configureDashboardForRole(role) {
     document.querySelectorAll('.role-link').forEach(el => el.style.display = 'none');
     document.querySelectorAll('.role-content').forEach(el => el.style.display = 'none');
 
-    if (role === 'buyer') {
-        // Show Seeker Elements
+    if (role === 'buyer' || role === 'ngo') {
+        // Show Seeker Elements (Buyer, NGO)
         document.querySelectorAll('.seeker-link').forEach(el => el.style.display = 'block');
         document.querySelectorAll('.seeker-content').forEach(el => el.style.display = 'grid'); // Grid for stats
         
         // Hide add dish tab if it was active by default (unlikely but safe)
-        const addDishTab = document.getElementById('add-dish');
-        if(addDishTab && addDishTab.classList.contains('active')) showTab('overview');
+        const addFoodTab = document.getElementById('add-dish');
+        if(addFoodTab && addFoodTab.classList.contains('active')) showTab('overview');
         
     } else {
-        // Show Provider Elements (Donor, NGO, Admin)
+        // Show Provider Elements (Donor, Restaurant, Hotel, Bakery, Market, Catering, Admin)
         document.querySelectorAll('.provider-link').forEach(el => el.style.display = 'block');
         document.querySelectorAll('.provider-content').forEach(el => el.style.display = 'grid'); // Grid for stats
     }
@@ -124,7 +125,7 @@ function renderNotifications(role) {
     // Filter notifications relevant to role (mock logic)
     // In real app, notifications belong to user ID
     const relevant = notifications.filter(n => {
-        if (role === 'buyer') return n.role === 'buyer';
+        if (role === 'buyer' || role === 'ngo') return n.role === 'buyer';
         return n.role === 'donor';
     });
 
@@ -201,6 +202,9 @@ function renderRequests() {
             <div class="text-right">
                 <span class="badge" style="background-color: ${getStatusColor(req.status)}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;">${req.status}</span>
                 ${req.status === 'Confirmed' ? `<p class="text-sm mt-5">Code: <strong>${req.pickupCode}</strong></p>` : ''}
+                <div class="mt-10">
+                    <a href="contact-donor.html?id=${req.id}" class="text-primary text-sm" style="font-weight: 500;"><i class="fas fa-envelope"></i> Contact Vendor</a>
+                </div>
             </div>
         </div>
     `).join('');

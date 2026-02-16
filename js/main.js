@@ -20,9 +20,14 @@ function checkAuth() {
         
         if (lastLi) {
             lastLi.innerHTML = `
-                <a href="#" class="btn btn-outline btn-small" onclick="logout(event)">
-                    <i class="fas fa-sign-out-alt"></i> Logout (${user.name.split(' ')[0]})
-                </a>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <a href="dashboard.html" class="btn btn-primary btn-small" title="Manage your orders and listings">
+                        <i class="fas fa-user"></i> My Account
+                    </a>
+                    <a href="#" class="btn btn-outline btn-small" onclick="logout(event)" title="Sign out">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
             `;
         }
     }
@@ -196,8 +201,7 @@ function initDetailsPage() {
                             </div>
                         </div>
                         
-                        <a href="reserve.html?id=${item.id}" class="btn btn-primary" style="width: 100%; margin-bottom: 10px;">Reserve Now</a>
-                        <a href="contact-donor.html?id=${item.id}" class="btn btn-outline" style="width: 100%;">Contact Donor</a>
+                        <div id="action-buttons"></div>
                     </div>
                 </div>
                 
@@ -216,6 +220,23 @@ function initDetailsPage() {
                     </div>
                 </div>
             `;
+
+            // Inject buttons after HTML is set
+            const session = JSON.parse(localStorage.getItem('navigi_session'));
+            const btnContainer = document.getElementById('action-buttons');
+            const isProvider = session && session.user && ['donor', 'restaurant', 'hotel', 'bakery', 'market', 'catering'].includes(session.user.role);
+            
+            if (isProvider) {
+                btnContainer.innerHTML = `
+                    <button class="btn btn-secondary disabled" style="width: 100%; margin-bottom: 10px; opacity: 0.6; cursor: not-allowed;" title="Providers cannot reserve items. Please login as a Buyer.">Reserve Now (Seekers Only)</button>
+                    <a href="contact-donor.html?id=${item.id}" class="btn btn-outline" style="width: 100%;">Contact Donor</a>
+                `;
+            } else {
+                btnContainer.innerHTML = `
+                    <a href="reserve.html?id=${item.id}" class="btn btn-primary" style="width: 100%; margin-bottom: 10px;">Reserve Now</a>
+                    <a href="contact-donor.html?id=${item.id}" class="btn btn-outline" style="width: 100%;">Contact Donor</a>
+                `;
+            }
         } else {
             detailsContainer.innerHTML = '<h2>Item not found</h2><a href="browse-food.html" class="btn btn-primary">Go Back</a>';
         }
@@ -234,6 +255,10 @@ function createFoodCard(item) {
     if (item.promoted) {
         promotedTag = '<div class="promoted-tag"><i class="fas fa-star"></i> Featured</div>';
     }
+
+    const session = JSON.parse(localStorage.getItem('navigi_session'));
+    const isProvider = session && session.user && ['donor', 'restaurant', 'hotel', 'bakery', 'market', 'catering'].includes(session.user.role);
+    const reserveButtonHtml = isProvider ? '' : `<a href="reserve.html?id=${item.id}" class="btn btn-primary btn-small" title="Reserve Now"><i class="fas fa-shopping-basket"></i></a>`;
 
     return `
         <article class="card ${isPromoted}">
@@ -259,12 +284,16 @@ function createFoodCard(item) {
                     <i class="fas fa-clock"></i> ${item.timeLeft} left
                 </div>
                 ${paymentBadges ? `<div class="payment-badge">${paymentBadges}</div>` : ''}
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+                <div class="d-flex justify-between align-center mt-20">
                     <div>
                         <span class="card-price">${item.price.toFixed(0)} DA</span>
                         <span class="card-original-price">${item.originalPrice.toFixed(0)} DA</span>
                     </div>
-                    <a href="food-details.html?id=${item.id}" class="btn btn-outline btn-small">View</a>
+                </div>
+                <div class="d-flex gap-10 mt-15">
+                    <a href="food-details.html?id=${item.id}" class="btn btn-outline btn-small" style="flex: 1;">View</a>
+                    ${reserveButtonHtml}
+                    <a href="contact-donor.html?id=${item.id}" class="btn btn-outline btn-small" title="Contact Seller"><i class="fas fa-envelope"></i></a>
                 </div>
             </div>
         </article>

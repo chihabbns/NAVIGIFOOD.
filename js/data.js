@@ -83,12 +83,41 @@ const foodItems = [
     promoted: false,
     paymentMethods: ["Cash"],
   },
+  {
+    id: 7,
+    title: "Grocery Essentials Box",
+    donor: "Superette El Manar",
+    type: "Market",
+    price: 1200,
+    originalPrice: 2000,
+    image: "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=800&q=80", // Grocery
+    location: "El Biar, Algiers",
+    timeLeft: "2 days",
+    description: "Box containing pasta, tomato sauce, and canned goods close to expiry but good.",
+    promoted: false,
+    paymentMethods: ["Cash", "BaridiMob"],
+  },
+  {
+    id: 8,
+    title: "Wedding Buffet Surplus",
+    donor: "Traiteur Royal",
+    type: "Events & Catering",
+    price: 2500,
+    originalPrice: 6000,
+    image: "https://images.unsplash.com/photo-1555244162-803834f70033?auto=format&fit=crop&w=800&q=80", // Catering/Buffet
+    location: "Hydra, Algiers",
+    timeLeft: "2 hours",
+    description: "Assorted appetizers, main courses (chicken & meat), and salads from a wedding event.",
+    promoted: true,
+    paymentMethods: ["Cash"],
+  },
 ];
 
 const categories = [
   { name: "Restaurants", icon: "fas fa-utensils", link: "restaurants.html" },
   { name: "Hotels", icon: "fas fa-hotel", link: "hotels.html" },
   { name: "Bakeries", icon: "fas fa-bread-slice", link: "bakeries.html" },
+  { name: "Markets", icon: "fas fa-carrot", link: "markets.html" },
   { name: "Events & Catering", icon: "fas fa-glass-cheers", link: "events-catering.html" },
   { name: "NGOs", icon: "fas fa-hand-holding-heart", link: "ngo.html" },
 ];

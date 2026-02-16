@@ -174,7 +174,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Redirect
                 setTimeout(() => {
                     // Redirect to dashboard if donor/ngo, else home
-                    if(newUser.role === 'donor' || newUser.role === 'ngo') {
+                    const partnerRoles = ['donor', 'ngo', 'restaurant', 'hotel', 'bakery', 'market', 'catering', 'admin'];
+                    if(partnerRoles.includes(newUser.role)) {
                          window.location.href = 'dashboard.html';
                     } else {
                          window.location.href = 'index.html';
@@ -249,7 +250,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                         
                         setTimeout(() => {
-                           if(user.role === 'donor' || user.role === 'admin' || user.role === 'ngo') {
+                           const partnerRoles = ['donor', 'ngo', 'restaurant', 'hotel', 'bakery', 'market', 'catering', 'admin'];
+                           if(partnerRoles.includes(user.role)) {
                                window.location.href = 'dashboard.html';
                            } else {
                                window.location.href = 'index.html';
