@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="color-scheme" content="light dark">
+    <script>/* Anti-FOWT */(function(){var t=localStorage.getItem('theme');if(!t){t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}document.documentElement.setAttribute('data-theme',t);})();</script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Manage your NavigiFood listings, orders, and sales from your seller dashboard." />
     <title>Dashboard - NavigiFood</title>
@@ -14,15 +16,9 @@
     <nav class="navbar">
         <div class="container nav-container">
             <a href="index.html" class="logo">
-                <span class="logo-icon">
-            <i class="fas fa-utensil-spoon"></i>
-            <i class="fas fa-utensil-fork"></i>
-          </span>
+                
           <span class="logo-text">Navigi<span>Food</span></span>
             </a>
-            <div class="mobile-toggle" id="mobile-toggle">
-                <i class="fas fa-bars"></i>
-            </div>
             <ul class="nav-links" id="nav-links">
                 <li><a href="index.html" class="nav-link">Home</a></li>
                 <li><a href="about.html" class="nav-link">About</a></li>
@@ -31,6 +27,18 @@
                 <li><a href="contact.html" class="nav-link">Contact</a></li>
                 <li><a href="join.html" class="btn btn-primary btn-small">Get Started</a></li>
           </ul>
+          
+          <div class="nav-right">
+              <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode" aria-pressed="false" title="Toggle dark mode">
+                  <span class="theme-icon-wrap">
+                      <i class="fas fa-sun theme-icon-sun"></i>
+                      <i class="fas fa-moon theme-icon-moon"></i>
+                  </span>
+              </button>
+              <div class="mobile-toggle" id="mobile-toggle">
+                  <i class="fas fa-bars"></i>
+              </div>
+          </div>
         </div>
     </nav>
 
@@ -71,7 +79,7 @@
                         </li>
 
                         <li class="mt-30">
-                            <a href="#" class="text-danger d-flex align-center gap-10" onclick="logout(event)"><i class="fas fa-sign-out-alt" style="width: 20px;"></i> Logout</a>
+                            <a href="#" class="nav-link-item text-danger d-flex align-center gap-10" onclick="logout(event)"><i class="fas fa-sign-out-alt" style="width: 20px;"></i> Logout</a>
                         </li>
                     </ul>
                 </aside>
@@ -124,7 +132,7 @@
                         <div class="card role-content provider-content">
                             <div class="card-body">
                                 <h3 class="mb-20">Your Active Listings</h3>
-                                <table class="w-100 border-collapse">
+                                <table class="w-100" style="border-collapse: collapse;"><!-- FIX: border-collapse is a CSS property not a display class; using inline style -->
                                     <thead>
                                         <tr class="text-left border-bottom">
                                             <th class="p-10">Dish</th>
@@ -156,41 +164,119 @@
                     <!-- Add Dish Tab -->
                     <div id="add-dish" class="dashboard-tab" style="display: none;">
                         <h1 class="mb-30">Add New Dish</h1>
-                        <div class="card card-body">
-                            <form id="add-dish-form">
-                                <div class="form-group">
-                                    <label class="form-label">Dish Name</label>
-                                    <input type="text" id="dish-name" class="form-control" placeholder="e.g. Mhajeb Box" required>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Description (Darja recommended)</label>
-                                    <textarea id="dish-desc" class="form-control" rows="3" placeholder="Describe the dish..." required></textarea>
-                                </div>
-                                <div class="grid grid-fit-250">
-                                    <div class="form-group">
-                                        <label class="form-label">Original Price (DA)</label>
-                                        <input type="number" id="dish-original-price" class="form-control" placeholder="1000" required>
+                        <div class="grid grid-2-1 gap-30 align-start">
+                            <!-- Form Column -->
+                            <div class="card card-body">
+                                <form id="add-dish-form">
+                                    <div class="grid grid-fit-250 gap-20">
+                                        <div class="form-group">
+                                            <label class="form-label">Dish Name</label>
+                                            <input type="text" id="dish-name" class="form-control" placeholder="e.g. Mhajeb Box" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">Category</label>
+                                            <select id="dish-category" class="form-control" required>
+                                                <option value="" disabled selected>Select Category</option>
+                                                <option value="Restaurant">Restaurant</option>
+                                                <option value="Bakery">Bakery</option>
+                                                <option value="Hotel">Hotel</option>
+                                                <option value="Market">Market</option>
+                                                <option value="Event & Catering">Event & Catering</option>
+                                            </select>
+                                        </div>
                                     </div>
-                                    <div class="form-group">
-                                        <label class="form-label">Selling Price (DA)</label>
-                                        <input type="number" id="dish-price" class="form-control" placeholder="500" required>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Upload Image URL</label>
-                                    <input type="url" id="dish-image" class="form-control" placeholder="https://example.com/image.jpg">
-                                </div>
-                                
-                                <div class="grid grid-fit-250 gap-20 mt-30">
-                                    <button type="button" onclick="handlePublishFree()" class="btn btn-outline w-100">
-                                        Publish (Free)
-                                    </button>
                                     
-                                    <button type="button" onclick="handlePublishBoost()" class="btn btn-primary w-100 d-flex align-center justify-center gap-10" style="background: linear-gradient(45deg, #FFD700, #FFA500); color: black; border: none;">
-                                        <i class="fas fa-rocket"></i> Publish & Boost (200 DA)
-                                    </button>
+                                    <div class="form-group">
+                                        <label class="form-label">Description (Darja recommended)</label>
+                                        <textarea id="dish-desc" class="form-control" rows="3" placeholder="Describe the dish..." required></textarea>
+                                    </div>
+                                    
+                                    <div class="grid grid-fit-200 gap-20">
+                                        <div class="form-group">
+                                            <label class="form-label">Original Price (DA)</label>
+                                            <input type="number" id="dish-original-price" class="form-control" placeholder="1000" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">Selling Price (DA)</label>
+                                            <input type="number" id="dish-price" class="form-control" placeholder="500" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">Quantity Available</label>
+                                            <input type="number" id="dish-quantity" class="form-control" placeholder="1" min="1" value="1" required>
+                                        </div>
+                                    </div>
+
+                                    <div class="grid grid-fit-200 gap-20">
+                                        <div class="form-group">
+                                            <label class="form-label">Pickup From</label>
+                                            <input type="time" id="dish-pickup-from" class="form-control" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">Pickup To</label>
+                                            <input type="time" id="dish-pickup-to" class="form-control" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">Expiry Date</label>
+                                            <input type="date" id="dish-expiry" class="form-control" required>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">Upload Image</label>
+                                        <div class="d-flex align-center gap-15">
+                                            <input type="file" id="dish-image" class="form-control" accept="image/*" required>
+                                            <div id="image-preview-container" style="display: none; width: 60px; height: 60px; overflow: hidden; border-radius: 8px; border: 1px solid var(--border-color);">
+                                                <img id="image-preview-mini" src="" style="width: 100%; height: 100%; object-fit: cover;">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="grid grid-fit-250 gap-20 mt-30">
+                                        <button type="button" onclick="handlePublishFree()" class="btn btn-outline w-100">
+                                            Publish (Free)
+                                        </button>
+                                        
+                                        <button type="button" onclick="handlePublishBoost()" class="btn btn-primary w-100 d-flex align-center justify-center gap-10" style="background: var(--gradient-primary); color: white; border: none;">
+                                            <i class="fas fa-rocket"></i> Publish & Boost (200 DA)
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <!-- Preview Column -->
+                            <div class="preview-column sticky-top" style="position: sticky; top: 100px;">
+                                <h3 class="mb-20">Live Preview</h3>
+                                <div id="live-preview-card" class="card" style="max-width: 350px;">
+                                    <img id="preview-img" src="https://via.placeholder.com/400x300?text=Dish+Image" class="card-img" alt="Preview">
+                                    <div class="card-body">
+                                        <div id="preview-badge" class="badge">Category</div>
+                                        <h3 id="preview-title" class="card-title">Dish Name</h3>
+                                        <p id="preview-desc-text" class="card-info" style="font-size: 0.85rem; height: 3.4em; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical;">Your dish description will appear here...</p>
+                                        
+                                        <div class="d-flex justify-between align-center mt-15">
+                                            <div class="card-price">
+                                                <span id="preview-price-val">0</span> DA
+                                                <span id="preview-original-price-val" class="card-original-price">0 DA</span>
+                                            </div>
+                                            <div class="text-gray" style="font-size: 0.8rem;">
+                                                <i class="fas fa-cubes"></i> Qty: <span id="preview-quantity-val">1</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mt-15 pt-15" style="font-size: 0.8rem; border-top: 1px solid var(--border-color);">
+                                            <div class="d-flex align-center gap-10 mb-5">
+                                                <i class="fas fa-clock text-primary"></i>
+                                                <span>Pickup: <span id="preview-time-val">--:-- to --:--</span></span>
+                                            </div>
+                                            <div class="d-flex align-center gap-10">
+                                                <i class="fas fa-calendar-times text-danger"></i>
+                                                <span>Expires: <span id="preview-expiry-val">YYYY-MM-DD</span></span>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                            </form>
+                                <p class="text-gray mt-15 text-sm"><i class="fas fa-info-circle"></i> This is how your dish will look to potential buyers.</p>
+                            </div>
                         </div>
                     </div>
 
@@ -254,7 +340,7 @@
             <h2 style="margin-bottom: 20px;">Boost Payment</h2>
             <p style="margin-bottom: 30px;">Confirm your payment of <strong>200 DA</strong> to boost this listing.</p>
             
-            <div style="padding: 20px; background: #f8f9fa; border-radius: 8px; margin-bottom: 20px; text-align: center;">
+            <div style="padding: 20px; background: var(--bg-light); border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 20px; text-align: center;">
                 <i class="fas fa-credit-card" style="font-size: 2rem; color: var(--primary); margin-bottom: 10px;"></i>
                 <p>Secure Payment Gateway</p>
             </div>
@@ -266,6 +352,11 @@
     <!-- Footer -->
     <footer class="footer">
         <div class="container">
+            <div class="social-links" style="justify-content: center; margin-bottom: 25px; margin-top: 0;">
+                <a href="#" class="social-icon" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" class="social-icon" title="Twitter"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="social-icon" title="Instagram"><i class="fab fa-instagram"></i></a>
+            </div>
             <div class="copyright">
                 <p>&copy; 2026 NavigiFood. All rights reserved.</p>
             </div>
@@ -277,3 +368,4 @@
     <script src="js/dashboard.js"></script>
 </body>
 </html>
+

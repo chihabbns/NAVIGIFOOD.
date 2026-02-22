@@ -250,6 +250,97 @@ function deleteListing(id) {
 // Add Dish Logic
 let selectedPaymentMethod = null;
 
+// Live Preview Logic
+function initLivePreview() {
+    const form = document.getElementById('add-dish-form');
+    if (!form) return;
+
+    const inputs = {
+        name: document.getElementById('dish-name'),
+        category: document.getElementById('dish-category'),
+        desc: document.getElementById('dish-desc'),
+        originalPrice: document.getElementById('dish-original-price'),
+        price: document.getElementById('dish-price'),
+        quantity: document.getElementById('dish-quantity'),
+        pickupFrom: document.getElementById('dish-pickup-from'),
+        pickupTo: document.getElementById('dish-pickup-to'),
+        expiry: document.getElementById('dish-expiry'),
+        image: document.getElementById('dish-image')
+    };
+
+    const previews = {
+        title: document.getElementById('preview-title'),
+        badge: document.getElementById('preview-badge'),
+        desc: document.getElementById('preview-desc-text'),
+        originalPrice: document.getElementById('preview-original-price-val'),
+        price: document.getElementById('preview-price-val'),
+        quantity: document.getElementById('preview-quantity-val'),
+        time: document.getElementById('preview-time-val'),
+        expiry: document.getElementById('preview-expiry-val'),
+        img: document.getElementById('preview-img'),
+        miniImg: document.getElementById('image-preview-mini'),
+        miniContainer: document.getElementById('image-preview-container')
+    };
+
+    const updatePreview = () => {
+        if (previews.title) previews.title.textContent = inputs.name.value || 'Dish Name';
+        if (previews.desc) previews.desc.textContent = inputs.desc.value || 'Your dish description will appear here...';
+        if (previews.price) previews.price.textContent = inputs.price.value || '0';
+        if (previews.originalPrice) previews.originalPrice.textContent = (inputs.originalPrice.value || '0') + ' DA';
+        if (previews.quantity) previews.quantity.textContent = inputs.quantity.value || '1';
+        
+        let timeRange = '--:-- to --:--';
+        if (inputs.pickupFrom.value || inputs.pickupTo.value) {
+            timeRange = `${inputs.pickupFrom.value || '--:--'} to ${inputs.pickupTo.value || '--:--'}`;
+        }
+        if (previews.time) previews.time.textContent = timeRange;
+        
+        if (previews.expiry) previews.expiry.textContent = inputs.expiry.value || 'YYYY-MM-DD';
+        
+        if (previews.badge && inputs.category.value) {
+            previews.badge.textContent = inputs.category.value;
+            // Update badge class based on category
+            previews.badge.className = 'badge';
+            const catClass = 'badge-' + inputs.category.value.toLowerCase().split(' ')[0].replace('&', 'catering');
+            previews.badge.classList.add(catClass);
+        }
+    };
+
+    // Listen for all input changes
+    Object.values(inputs).forEach(input => {
+        if (!input) return;
+        input.addEventListener('input', updatePreview);
+    });
+
+    // Handle Image Selection
+    if (inputs.image) {
+        inputs.image.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    if (previews.img) previews.img.src = event.target.result;
+                    if (previews.miniImg) previews.miniImg.src = event.target.result;
+                    if (previews.miniContainer) previews.miniContainer.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+
+    // Initial call
+    updatePreview();
+}
+
+// Call init when tab is shown
+const originalShowTab = showTab;
+showTab = function(tabId) {
+    originalShowTab(tabId);
+    if (tabId === 'add-dish') {
+        initLivePreview();
+    }
+}
+
 function handlePublishFree() {
     if(validateForm()) {
         publishDish(false);
@@ -266,8 +357,14 @@ function handlePublishBoost() {
 function validateForm() {
     const name = document.getElementById('dish-name').value;
     const price = document.getElementById('dish-price').value;
-    if(!name || !price) {
-        alert("Please fill in the dish name and price.");
+    const category = document.getElementById('dish-category').value;
+    const pickupFrom = document.getElementById('dish-pickup-from').value;
+    const pickupTo = document.getElementById('dish-pickup-to').value;
+    const expiry = document.getElementById('dish-expiry').value;
+    const image = document.getElementById('dish-image').files[0];
+
+    if(!name || !price || !category || !pickupFrom || !pickupTo || !expiry || !image) {
+        alert("Please fill in all required fields and upload an image.");
         return false;
     }
     return true;
@@ -291,7 +388,13 @@ function publishDish(boosted) {
     alert(`"${name}" published successfully!`);
     showTab('overview');
     const form = document.getElementById('add-dish-form');
-    if(form) form.reset();
+    if(form) {
+        form.reset();
+        const miniContainer = document.getElementById('image-preview-container');
+        if(miniContainer) miniContainer.style.display = 'none';
+        const previewImg = document.getElementById('preview-img');
+        if(previewImg) previewImg.src = 'https://via.placeholder.com/400x300?text=Dish+Image';
+    }
 }
 
 function logout(event) {
@@ -310,3 +413,4 @@ window.deleteListing = deleteListing;
 window.closePaymentModal = closePaymentModal;
 window.processPayment = processPayment;
 window.logout = logout;
+window.initLivePreview = initLivePreview;

@@ -70,8 +70,46 @@ document.addEventListener('DOMContentLoaded', function() {
     const urlParams = new URLSearchParams(window.location.search);
     const roleParam = urlParams.get('role');
     const roleSelect = document.getElementById('role');
+
     if (roleSelect && roleParam) {
-        roleSelect.value = roleParam;
+        const sellerRoles   = ['restaurant', 'hotel', 'bakery', 'market', 'catering'];
+        const buyerRoles    = ['buyer', 'ngo'];
+        const allOptions    = Array.from(roleSelect.options);
+        const optgroups     = Array.from(roleSelect.querySelectorAll('optgroup'));
+
+        if (roleParam === 'donor') {
+            // Coming as a Seller → hide buyer/NGO options, keep only business options
+            allOptions.forEach(opt => {
+                if (buyerRoles.includes(opt.value)) {
+                    opt.style.display = 'none';
+                    opt.disabled = true;
+                }
+            });
+            // Pre-select first business option
+            roleSelect.value = 'restaurant';
+            // Update label hint
+            const label = roleSelect.closest('.form-group')?.querySelector('.form-label');
+            if (label) label.textContent = 'My Business Type';
+
+        } else if (roleParam === 'buyer') {
+            // Coming as a Buyer → hide all business options + optgroup
+            allOptions.forEach(opt => {
+                if (sellerRoles.includes(opt.value)) {
+                    opt.style.display = 'none';
+                    opt.disabled = true;
+                }
+            });
+            optgroups.forEach(og => og.style.display = 'none');
+            // Pre-select buyer
+            roleSelect.value = 'buyer';
+            // Update label hint
+            const label = roleSelect.closest('.form-group')?.querySelector('.form-label');
+            if (label) label.textContent = 'I want to...';
+
+        } else {
+            // Generic fallback — just pre-select whatever value is in the URL
+            roleSelect.value = roleParam;
+        }
     }
 
     // --- REGISTER FORM ---

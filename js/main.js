@@ -2,12 +2,223 @@
 
 document.addEventListener('DOMContentLoaded', () => {
     initMobileMenu();
+    initThemeToggle();   // Dark mode toggle
     initHomePage();
     initBrowsePage();
     initDetailsPage();
     initCategoryPages();
+    initSearchSuggestions();
     checkAuth();
 });
+
+/* ================================================================
+   DARK MODE — Theme Toggle
+   The anti-flash inline script (in each HTML <head>) runs FIRST
+   to set data-theme before the page paints.
+   This function wires the button behaviour after DOM is ready.
+   ================================================================ */
+function initThemeToggle() {
+    const btn  = document.getElementById('theme-toggle');
+    const html = document.documentElement;
+
+    if (!btn) return;
+
+    // Sync aria-pressed with current theme on load
+    function syncBtn() {
+        const isDark = html.getAttribute('data-theme') === 'dark';
+        btn.setAttribute('aria-pressed', isDark ? 'true' : 'false');
+    }
+    syncBtn();
+
+    btn.addEventListener('click', () => {
+        const isDark = html.getAttribute('data-theme') === 'dark';
+        const next   = isDark ? 'light' : 'dark';
+
+        // Apply theme to <html> element
+        html.setAttribute('data-theme', next);
+
+        // Persist preference
+        try { localStorage.setItem('theme', next); } catch(e) {}
+
+        // Update accessibility attribute
+        btn.setAttribute('aria-pressed', next === 'dark' ? 'true' : 'false');
+
+        // Trigger 360deg spin animation
+        btn.classList.remove('spinning');
+        void btn.offsetWidth; // force reflow — restarts animation
+        btn.classList.add('spinning');
+        btn.addEventListener('animationend', () => {
+            btn.classList.remove('spinning');
+        }, { once: true });
+    });
+
+    // iOS Safari: ensure Space key works on buttons inside nav
+    btn.addEventListener('keydown', e => {
+        if (e.key === ' ') { e.preventDefault(); btn.click(); }
+    });
+}
+
+
+function initSearchSuggestions() {
+    const searchInputs = document.querySelectorAll('.search-input');
+    let selectedIndex = -1;
+
+    
+    searchInputs.forEach(input => {
+        let suggestionsContainer = input.parentElement.querySelector('.search-suggestions');
+        if (!suggestionsContainer) {
+            suggestionsContainer = document.createElement('div');
+            suggestionsContainer.className = 'search-suggestions';
+            input.parentElement.appendChild(suggestionsContainer);
+        }
+
+        const closeSuggestions = () => {
+            suggestionsContainer.classList.remove('active');
+            selectedIndex = -1;
+        };
+
+        input.addEventListener('focus', () => {
+            if (input.value.trim().length === 0) {
+                showPopularSearches(suggestionsContainer);
+            } else {
+                input.dispatchEvent(new Event('input'));
+            }
+        });
+
+        input.addEventListener('input', (e) => {
+            const term = e.target.value.trim().toLowerCase();
+            selectedIndex = -1;
+            
+            if (term.length === 0) {
+                showPopularSearches(suggestionsContainer);
+                return;
+            }
+
+            if (typeof foodItems === 'undefined') return;
+
+            // Logic: Group by category
+            const results = {
+                dishes: foodItems.filter(item => item.title.toLowerCase().includes(term))
+                        .map(item => ({ text: item.title, icon: 'fas fa-utensils', meta: 'Dish' })),
+                donors: foodItems.filter(item => item.donor.toLowerCase().includes(term))
+                        .map(item => ({ text: item.donor, icon: 'fas fa-store', meta: 'Merchant' })),
+                places: foodItems.filter(item => item.location.toLowerCase().includes(term))
+                        .map(item => ({ text: item.location, icon: 'fas fa-map-marker-alt', meta: 'Location' }))
+            };
+
+            // Remove duplicates within groups
+            results.dishes = Array.from(new Set(results.dishes.map(r => r.text))).map(text => results.dishes.find(r => r.text === text)).slice(0, 3);
+            results.donors = Array.from(new Set(results.donors.map(r => r.text))).map(text => results.donors.find(r => r.text === text)).slice(0, 2);
+            results.places = Array.from(new Set(results.places.map(r => r.text))).map(text => results.places.find(r => r.text === text)).slice(0, 2);
+
+            renderSuggestions(suggestionsContainer, results, term);
+        });
+
+        input.addEventListener('keydown', (e) => {
+            const items = suggestionsContainer.querySelectorAll('.suggestion-item');
+            if (!suggestionsContainer.classList.contains('active') || items.length === 0) return;
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                selectedIndex = (selectedIndex + 1) % items.length;
+                updateSelection(items);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                selectedIndex = (selectedIndex - 1 + items.length) % items.length;
+                updateSelection(items);
+            } else if (e.key === 'Enter' && selectedIndex > -1) {
+                e.preventDefault();
+                items[selectedIndex].click();
+            } else if (e.key === 'Escape') {
+                closeSuggestions();
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!input.parentElement.contains(e.target)) closeSuggestions();
+        });
+    });
+
+    function updateSelection(items) {
+        items.forEach((item, index) => {
+            if (index === selectedIndex) {
+                item.classList.add('selected');
+                item.scrollIntoView({ block: 'nearest' });
+            } else {
+                item.classList.remove('selected');
+            }
+        });
+    }
+}
+
+function showPopularSearches(container) {
+    if (typeof foodItems === 'undefined') return;
+    
+    // Popular = just some first items
+    const popular = {
+        dishes: foodItems.slice(0, 3).map(item => ({ text: item.title, icon: 'fas fa-fire', meta: 'Trending' })),
+        places: [...new Set(foodItems.map(i => i.location))].slice(0, 2).map(loc => ({ text: loc, icon: 'fas fa-map-pin', meta: 'Nearby' }))
+    };
+
+    renderSuggestions(container, popular, "", "Popular Searches");
+}
+
+function renderSuggestions(container, groups, term, customTitle = null) {
+    let html = '';
+    let totalResults = 0;
+
+    for (const [key, items] of Object.entries(groups)) {
+        if (items.length > 0) {
+            totalResults += items.length;
+            const groupTitle = customTitle || key.charAt(0).toUpperCase() + key.slice(1);
+            html += `<div class="suggestion-group-title">${groupTitle}</div>`;
+            items.forEach(item => {
+                const highlighted = term ? item.text.replace(new RegExp(`(${term})`, 'gi'), '<b>$1</b>') : item.text;
+                html += `
+                    <div class="suggestion-item" onclick="selectSuggestion('${item.text}', this)">
+                        <i class="${item.icon}"></i>
+                        <div class="suggestion-content">
+                            <span class="suggestion-text">${highlighted}</span>
+                            <span class="suggestion-meta">${item.meta}</span>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+    }
+
+    if (totalResults > 0) {
+        container.innerHTML = html;
+        container.classList.add('active');
+    } else if (term) {
+        container.innerHTML = `
+            <div class="search-no-results">
+                <i class="fas fa-search"></i>
+                <p>No results found for "<b>${term}</b>"</p>
+                <small>Try searching for Pizza, Bakery, or Algiers</small>
+            </div>
+        `;
+        container.classList.add('active');
+    } else {
+        container.classList.remove('active');
+    }
+}
+
+window.selectSuggestion = function(text, el) {
+    const container = el.closest('.search-container') || el.closest('.input-group');
+    const input = container.querySelector('.search-input');
+    const suggestions = container.querySelector('.search-suggestions');
+    
+    input.value = text;
+    suggestions.classList.remove('active');
+    
+    if (window.location.pathname.includes('index.html') || window.location.pathname === '/') {
+        container.closest('form').submit();
+    } else {
+        const event = new Event('input', { bubbles: true });
+        input.dispatchEvent(event);
+    }
+};
 
 function checkAuth() {
     const session = JSON.parse(localStorage.getItem('navigi_session'));
@@ -80,82 +291,149 @@ function initHomePage() {
 }
 
 function initBrowsePage() {
-    const browseGrid = document.getElementById('browse-grid');
-    const searchInput = document.getElementById('browse-search');
-    const priceFilters = document.querySelectorAll('.price-filter');
-    
-    // Check for category filter in URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const categoryFilter = urlParams.get('category');
-    const searchFilter = urlParams.get('search');
+    const browseGrid     = document.getElementById('browse-grid');
+    const resultsCount   = document.getElementById('results-count');
+    const priceRange     = document.getElementById('price-range');
+    const priceLabel     = document.getElementById('price-label');
+    const keywordInput   = document.getElementById('keyword-filter');
+    const locationInput  = document.getElementById('location-filter');
+    const sortSelect     = document.getElementById('sort-filter');
+    const resetBtn       = document.getElementById('reset-filters');
+    const catFilters     = document.querySelectorAll('.cat-filter');
 
-    if (browseGrid && typeof foodItems !== 'undefined') {
-        let baseItems = foodItems;
+    if (!browseGrid || typeof foodItems === 'undefined') return;
 
-        // Apply category filter
-        if (categoryFilter) {
-            baseItems = baseItems.filter(item => item.type.toLowerCase() === categoryFilter.toLowerCase());
-            // Update title if exists
-            const pageTitle = document.getElementById('page-title');
-            if (pageTitle) pageTitle.textContent = categoryFilter + 's'; 
-        }
-        
-        // Apply search filter
-        if (searchFilter) {
-            baseItems = baseItems.filter(item => 
-                item.title.toLowerCase().includes(searchFilter.toLowerCase()) || 
-                item.location.toLowerCase().includes(searchFilter.toLowerCase()) ||
-                item.donor.toLowerCase().includes(searchFilter.toLowerCase())
-            );
-            if(searchInput) searchInput.value = searchFilter;
-        }
+    // Check for URL params (category link or search from homepage)
+    const urlParams      = new URLSearchParams(window.location.search);
+    const categoryParam  = urlParams.get('category');
+    const searchParam    = urlParams.get('search');
 
-        // Function to apply all filters
-        function applyFilters() {
-            let filteredItems = [...baseItems];
-
-            // Apply price filters
-            const checkedPriceFilters = Array.from(priceFilters).filter(f => f.checked);
-            if (checkedPriceFilters.length > 0) {
-                filteredItems = filteredItems.filter(item => {
-                    return checkedPriceFilters.some(filter => {
-                        const min = parseFloat(filter.dataset.min);
-                        const max = parseFloat(filter.dataset.max);
-                        return item.price >= min && item.price <= max;
-                    });
-                });
-            }
-
-            // Apply search filter
-            if (searchInput && searchInput.value) {
-                const term = searchInput.value.toLowerCase();
-                filteredItems = filteredItems.filter(item => 
-                    item.title.toLowerCase().includes(term) || 
-                    item.location.toLowerCase().includes(term) ||
-                    item.donor.toLowerCase().includes(term)
-                );
-            }
-
-            // Sort promoted items to first
-            filteredItems.sort((a, b) => (b.promoted ? 1 : 0) - (a.promoted ? 1 : 0));
-
-            renderGrid(browseGrid, filteredItems);
-        }
-
-        // Initial render
-        applyFilters();
-
-        // Add event listeners for price filters
-        priceFilters.forEach(filter => {
-            filter.addEventListener('change', applyFilters);
+    // Pre-filter from URL: if a specific category is in URL, uncheck all others
+    if (categoryParam) {
+        catFilters.forEach(cb => {
+            cb.checked = cb.value.toLowerCase() === categoryParam.toLowerCase();
         });
+    }
 
-        // Add search listener
-        if (searchInput) {
-            searchInput.addEventListener('input', applyFilters);
+    // Live price slider label
+    if (priceRange && priceLabel) {
+        priceRange.addEventListener('input', () => {
+            priceLabel.textContent = Number(priceRange.value).toLocaleString() + ' DA';
+            applyFilters();
+        });
+    }
+
+    // Keyword filter
+    if (keywordInput) {
+        keywordInput.addEventListener('input', applyFilters);
+        if (searchParam) {
+            keywordInput.value = searchParam;
         }
     }
+
+    // Location filter
+    if (locationInput) {
+        locationInput.addEventListener('input', applyFilters);
+    }
+
+    // Category checkboxes
+    catFilters.forEach(cb => cb.addEventListener('change', applyFilters));
+
+    // Sort
+    if (sortSelect) sortSelect.addEventListener('change', applyFilters);
+
+    // Reset
+    if (resetBtn) {
+        resetBtn.addEventListener('click', () => {
+            catFilters.forEach(cb => cb.checked = true);
+            if (priceRange)    { priceRange.value = priceRange.max; }
+            if (priceLabel)    { priceLabel.textContent = Number(priceRange.max).toLocaleString() + ' DA'; }
+            if (keywordInput)  { keywordInput.value = ''; }
+            if (locationInput) { locationInput.value = ''; }
+            if (sortSelect)    { sortSelect.value = 'featured'; }
+            applyFilters();
+        });
+    }
+
+    // --- Core filter + sort function ---
+    function applyFilters() {
+        let items = [...foodItems];
+
+        // 1 — Category filter
+        const checkedCats = Array.from(catFilters)
+            .filter(cb => cb.checked)
+            .map(cb => cb.value.toLowerCase());
+
+        if (checkedCats.length > 0) {
+            items = items.filter(item => checkedCats.includes(item.type.toLowerCase()));
+        } else {
+            items = []; // nothing checked = show nothing
+        }
+
+        // 2 — Keyword search (Title, Donor, or Location)
+        if (keywordInput && keywordInput.value.trim()) {
+            const term = keywordInput.value.trim().toLowerCase();
+            items = items.filter(item => 
+                item.title.toLowerCase().includes(term) || 
+                item.donor.toLowerCase().includes(term) ||
+                item.location.toLowerCase().includes(term)
+            );
+        }
+
+        // 3 — Location filter
+        if (locationInput && locationInput.value.trim()) {
+            const term = locationInput.value.trim().toLowerCase();
+            items = items.filter(item => item.location.toLowerCase().includes(term));
+        }
+
+        // 3 — Price filter
+        if (priceRange) {
+            const maxPrice = Number(priceRange.value);
+            items = items.filter(item => item.price <= maxPrice);
+        }
+
+        // 4 — Sort
+        const sortVal = sortSelect ? sortSelect.value : 'featured';
+        switch (sortVal) {
+            case 'price-asc':
+                items.sort((a, b) => a.price - b.price);
+                break;
+            case 'price-desc':
+                items.sort((a, b) => b.price - a.price);
+                break;
+            case 'discount':
+                items.sort((a, b) => {
+                    const dA = (a.originalPrice - a.price) / a.originalPrice;
+                    const dB = (b.originalPrice - b.price) / b.originalPrice;
+                    return dB - dA;
+                });
+                break;
+            case 'time':
+                // Sort by timeLeft: shorter strings like "30 mins" before "2 hours" before "2 days"
+                const timeOrder = { 'mins': 1, 'hour': 2, 'hours': 2, 'day': 3, 'days': 3 };
+                items.sort((a, b) => {
+                    const unitA = Object.keys(timeOrder).find(k => a.timeLeft.includes(k)) || 'days';
+                    const unitB = Object.keys(timeOrder).find(k => b.timeLeft.includes(k)) || 'days';
+                    const orderA = timeOrder[unitA] * parseFloat(a.timeLeft);
+                    const orderB = timeOrder[unitB] * parseFloat(b.timeLeft);
+                    return orderA - orderB;
+                });
+                break;
+            default: // 'featured'
+                items.sort((a, b) => (b.promoted ? 1 : 0) - (a.promoted ? 1 : 0));
+        }
+
+        // Update count
+        if (resultsCount) resultsCount.textContent = items.length;
+
+        // Render
+        renderGrid(browseGrid, items);
+    }
+
+    // Initial render
+    applyFilters();
 }
+
 
 function renderGrid(container, items) {
     if (items.length === 0) {

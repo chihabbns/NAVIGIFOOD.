@@ -2,6 +2,8 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta name="color-scheme" content="light dark">
+    <script>/* Anti-FOWT */(function(){var t=localStorage.getItem('theme');if(!t){t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}document.documentElement.setAttribute('data-theme',t);})();</script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Register for NavigiFood to buy or donate surplus food. Join our community to fight food waste." />
     <title>Register - NavigiFood</title>
@@ -16,15 +18,18 @@
     <nav class="navbar">
       <div class="container nav-container">
         <a href="index.html" class="logo">
-          <span class="logo-icon">
-            <i class="fas fa-utensil-spoon"></i>
-            <i class="fas fa-utensil-fork"></i>
-          </span>
+          
           <span class="logo-text">Navigi<span>Food</span></span>
         </a>
         <div class="mobile-toggle" id="mobile-toggle">
           <i class="fas fa-bars"></i>
         </div>
+        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode" aria-pressed="false" title="Toggle dark mode">
+          <span class="theme-icon-wrap">
+            <i class="fas fa-sun theme-icon-sun"></i>
+            <i class="fas fa-moon theme-icon-moon"></i>
+          </span>
+        </button>
         <ul class="nav-links" id="nav-links">
           <li><a href="index.html" class="nav-link">Home</a></li>
           <li><a href="about.html" class="nav-link">About</a></li>
@@ -161,16 +166,18 @@
         <div class="footer-grid">
           <div>
             <a href="#" class="logo text-white mb-20 d-inline-block">
-              <span class="logo-icon">
-            <i class="fas fa-utensil-spoon"></i>
-            <i class="fas fa-utensil-fork"></i>
-          </span>
+              
           <span class="logo-text">Navigi<span>Food</span></span>
             </a>
             <p class="text-light-gray">
               Fighting food waste one meal at a time. Connecting communities
               with quality surplus food.
             </p>
+            <div class="social-links">
+                <a href="#" class="social-icon" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" class="social-icon" title="Twitter"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="social-icon" title="Instagram"><i class="fab fa-instagram"></i></a>
+            </div>
           </div>
           <div>
             <h3>Quick Links</h3>
@@ -195,11 +202,9 @@
           <div>
             <h3>Contact</h3>
             <ul class="footer-links">
-              <li><i class="fas fa-envelope"></i> help@navigifood.com</li>
-              <li><i class="fas fa-phone"></i> +1 234 567 890</li>
-              <li>
-                <i class="fas fa-map-marker-alt"></i> 123 Green Street, Earth
-              </li>
+              <li><i class="fas fa-envelope"></i> chihabbns@gmail.com</li>
+              <li><i class="fas fa-phone"></i> +213659784788</li>
+              <li><i class="fas fa-map-marker-alt"></i> illizi,algeria</li>
             </ul>
           </div>
         </div>
@@ -213,3 +218,4 @@
     <script src="js/auth.js"></script>
   </body>
 </html>
+
