@@ -301,6 +301,15 @@ function initBrowsePage() {
     const resetBtn       = document.getElementById('reset-filters');
     const catFilters     = document.querySelectorAll('.cat-filter');
 
+    const foodTypeBtn    = document.getElementById('food-type-btn');
+    const foodTypePopup  = document.getElementById('food-type-popup');
+    const ftpClose       = document.getElementById('ftp-close');
+    const ftpApply       = document.getElementById('ftp-apply');
+    const ftpClear       = document.getElementById('ftp-clear');
+    const ftCheckboxes   = document.querySelectorAll('.ft-checkbox');
+    
+    let activeFilters = [];
+
     if (!browseGrid || typeof foodItems === 'undefined') return;
 
     // Check for URL params (category link or search from homepage)
@@ -342,6 +351,56 @@ function initBrowsePage() {
     // Sort
     if (sortSelect) sortSelect.addEventListener('change', applyFilters);
 
+    // Food Type Popup Logic
+    if (foodTypeBtn && foodTypePopup) {
+        foodTypeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            foodTypePopup.classList.toggle('active');
+        });
+
+        if (ftpClose) {
+            ftpClose.addEventListener('click', (e) => {
+                e.stopPropagation(); // prevent closing wrapper logic from triggering if any issue
+                foodTypePopup.classList.remove('active');
+            });
+        }
+
+        document.addEventListener('click', (e) => {
+            if (!foodTypePopup.contains(e.target) && !foodTypeBtn.contains(e.target)) {
+                foodTypePopup.classList.remove('active');
+            }
+        });
+
+        if (ftpApply) {
+            ftpApply.addEventListener('click', (e) => {
+                if(e) { e.preventDefault(); e.stopPropagation(); }
+                activeFilters = Array.from(ftCheckboxes)
+                    .filter(cb => cb.checked)
+                    .map(cb => cb.value);
+                
+                if (activeFilters.length > 0) {
+                    foodTypeBtn.classList.add('active-filter');
+                } else {
+                    foodTypeBtn.classList.remove('active-filter');
+                }
+                
+                foodTypePopup.classList.remove('active');
+                applyFilters();
+            });
+        }
+
+        if (ftpClear) {
+            ftpClear.addEventListener('click', (e) => {
+                if(e) { e.preventDefault(); e.stopPropagation(); }
+                ftCheckboxes.forEach(cb => cb.checked = false);
+                activeFilters = [];
+                foodTypeBtn.classList.remove('active-filter');
+                foodTypePopup.classList.remove('active');
+                applyFilters();
+            });
+        }
+    }
+
     // Reset
     if (resetBtn) {
         resetBtn.addEventListener('click', () => {
@@ -351,6 +410,12 @@ function initBrowsePage() {
             if (keywordInput)  { keywordInput.value = ''; }
             if (locationInput) { locationInput.value = ''; }
             if (sortSelect)    { sortSelect.value = 'featured'; }
+            
+            // clear food type filter
+            ftCheckboxes.forEach(cb => cb.checked = false);
+            activeFilters = [];
+            if (foodTypeBtn) foodTypeBtn.classList.remove('active-filter');
+            
             applyFilters();
         });
     }
@@ -368,6 +433,11 @@ function initBrowsePage() {
             items = items.filter(item => checkedCats.includes(item.type.toLowerCase()));
         } else {
             items = []; // nothing checked = show nothing
+        }
+
+        // 1.5 — Type of Food filter (uses item.foodType field set in data.js)
+        if (activeFilters && activeFilters.length > 0) {
+            items = items.filter(item => activeFilters.includes(item.foodType));
         }
 
         // 2 — Keyword search (Title, Donor, or Location)
@@ -403,24 +473,36 @@ function initBrowsePage() {
                 break;
             case 'discount':
                 items.sort((a, b) => {
-                    const dA = (a.originalPrice - a.price) / a.originalPrice;
-                    const dB = (b.originalPrice - b.price) / b.originalPrice;
+                    // Exclude free (price=0) from discount ranking — they'd always win at 100%
+                    const dA = a.price > 0 ? (a.originalPrice - a.price) / a.originalPrice : -1;
+                    const dB = b.price > 0 ? (b.originalPrice - b.price) / b.originalPrice : -1;
                     return dB - dA;
                 });
                 break;
-            case 'time':
-                // Sort by timeLeft: shorter strings like "30 mins" before "2 hours" before "2 days"
-                const timeOrder = { 'mins': 1, 'hour': 2, 'hours': 2, 'day': 3, 'days': 3 };
-                items.sort((a, b) => {
-                    const unitA = Object.keys(timeOrder).find(k => a.timeLeft.includes(k)) || 'days';
-                    const unitB = Object.keys(timeOrder).find(k => b.timeLeft.includes(k)) || 'days';
-                    const orderA = timeOrder[unitA] * parseFloat(a.timeLeft);
-                    const orderB = timeOrder[unitB] * parseFloat(b.timeLeft);
-                    return orderA - orderB;
-                });
+            case 'savings':
+                // Sort by absolute saving amount (originalPrice - price) in DA
+                items.sort((a, b) => (b.originalPrice - b.price) - (a.originalPrice - a.price));
                 break;
-            default: // 'featured'
-                items.sort((a, b) => (b.promoted ? 1 : 0) - (a.promoted ? 1 : 0));
+            case 'time':
+                // Convert timeLeft to minutes for accurate comparison
+                function toMinutes(timeLeft) {
+                    const val = parseFloat(timeLeft);
+                    if (isNaN(val)) return 99999;
+                    if (timeLeft.includes('min'))  return val;           // e.g. "30 mins" → 30
+                    if (timeLeft.includes('hour')) return val * 60;      // e.g. "1.5 hours" → 90
+                    if (timeLeft.includes('day'))  return val * 1440;    // e.g. "2 days" → 2880
+                    return 99999;
+                }
+                items.sort((a, b) => toMinutes(a.timeLeft) - toMinutes(b.timeLeft));
+                break;
+            default: // 'featured' — promoted first, then by discount %
+                items.sort((a, b) => {
+                    if (b.promoted !== a.promoted) return (b.promoted ? 1 : 0) - (a.promoted ? 1 : 0);
+                    // Secondary: higher discount first
+                    const dA = a.price > 0 ? (a.originalPrice - a.price) / a.originalPrice : 0;
+                    const dB = b.price > 0 ? (b.originalPrice - b.price) / b.originalPrice : 0;
+                    return dB - dA;
+                });
         }
 
         // Update count

@@ -29,7 +29,7 @@
             </ul>
             
             <div class="nav-right">
-                <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode" aria-pressed="false" title="Toggle dark mode">
+                <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode" aria-pressed="false" title="Toggle dark mode">
                     <span class="theme-icon-wrap">
                         <i class="fas fa-sun theme-icon-sun"></i>
                         <i class="fas fa-moon theme-icon-moon"></i>
@@ -61,9 +61,43 @@
                         <!-- Search Keywords -->
                         <div class="filter-group">
                             <h3 class="filter-title"><i class="fas fa-search" style="color:var(--primary);margin-right:6px;"></i>Search</h3>
-                            <div class="input-group" style="margin-bottom:0;">
+                            <div class="input-group" style="margin-bottom:0; position:relative;" id="search-input-wrapper">
                                 <input type="text" id="keyword-filter" class="form-control search-input" placeholder="Search dish or merchant...">
-                                <i class="fas fa-utensils"></i>
+                                <i class="fas fa-utensils cursor-pointer" id="food-type-btn" title="Filter by Food Type"></i>
+                                
+                                <!-- Type of Food Popup (Hidden by default via CSS) -->
+                                <div id="food-type-popup" class="food-type-popup">
+                                    <div class="ftp-header">
+                                        <h4>Type of Food</h4>
+                                        <i class="fas fa-times cursor-pointer" style="font-size: 1.2rem; display: flex; align-items: center; justify-content: center; padding: 5px;" id="ftp-close"></i>
+                                    </div>
+                                    <div class="ftp-body">
+                                        <div class="checkbox-item">
+                                            <input type="checkbox" id="ft-fastfood" class="ft-checkbox" value="Fast Food">
+                                            <label for="ft-fastfood">🍕 Fast Food</label>
+                                        </div>
+                                        <div class="checkbox-item">
+                                            <input type="checkbox" id="ft-traditional" class="ft-checkbox" value="Traditional">
+                                            <label for="ft-traditional">🍚 Traditional</label>
+                                        </div>
+                                        <div class="checkbox-item">
+                                            <input type="checkbox" id="ft-desserts" class="ft-checkbox" value="Desserts">
+                                            <label for="ft-desserts">🍰 Desserts</label>
+                                        </div>
+                                        <div class="checkbox-item">
+                                            <input type="checkbox" id="ft-bakery" class="ft-checkbox" value="Bakery">
+                                            <label for="ft-bakery">🍞 Bakery</label>
+                                        </div>
+                                        <div class="checkbox-item">
+                                            <input type="checkbox" id="ft-healthy" class="ft-checkbox" value="Healthy">
+                                            <label for="ft-healthy">🥗 Healthy</label>
+                                        </div>
+                                    </div>
+                                    <div class="ftp-footer">
+                                        <button type="button" class="btn btn-outline btn-small w-100" id="ftp-clear">Clear</button>
+                                        <button type="button" class="btn btn-primary btn-small w-100" id="ftp-apply">Apply</button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -128,15 +162,16 @@
                             <h3 class="filter-title"><i class="fas fa-sort" style="color:var(--primary);margin-right:6px;"></i>Sort By</h3>
                             <select id="sort-filter" class="form-control">
                                 <option value="featured">⭐ Featured First</option>
-                                <option value="price-asc">Price: Low → High</option>
-                                <option value="price-desc">Price: High → Low</option>
-                                <option value="discount">Biggest Discount</option>
-                                <option value="time">Expiring Soon</option>
+                                <option value="price-asc">💰 Price: Low → High</option>
+                                <option value="price-desc">💰 Price: High → Low</option>
+                                <option value="discount">🏷️ Biggest Discount %</option>
+                                <option value="savings">💵 Most Savings (DA)</option>
+                                <option value="time">⏰ Expiring Soon</option>
                             </select>
                         </div>
 
                         <!-- Reset -->
-                        <button id="reset-filters" class="btn btn-outline w-100" style="margin-top:5px;">
+                        <button type="button" id="reset-filters" class="btn btn-outline w-100" style="margin-top:5px;">
                             <i class="fas fa-redo"></i> Reset Filters
                         </button>
                     </div>

@@ -29,7 +29,7 @@
           </ul>
           
           <div class="nav-right">
-              <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode" aria-pressed="false" title="Toggle dark mode">
+              <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode" aria-pressed="false" title="Toggle dark mode">
                   <span class="theme-icon-wrap">
                       <i class="fas fa-sun theme-icon-sun"></i>
                       <i class="fas fa-moon theme-icon-moon"></i>
@@ -155,7 +155,7 @@
                                     <!-- Populated via JS -->
                                 </div>
                                 <div class="mt-20">
-                                    <button onclick="showTab('my-requests')" class="btn btn-outline btn-small">View All History</button>
+                                    <button type="button" onclick="showTab('my-requests')" class="btn btn-outline btn-small">View All History</button>
                                 </div>
                             </div>
                         </div>
@@ -163,7 +163,7 @@
 
                     <!-- Add Dish Tab -->
                     <div id="add-dish" class="dashboard-tab" style="display: none;">
-                        <h1 class="mb-30">Add New Dish</h1>
+                        <h2 class="mb-30">Add New Dish</h1>
                         <div class="grid grid-2-1 gap-30 align-start">
                             <!-- Form Column -->
                             <div class="card card-body">
@@ -226,7 +226,7 @@
                                         <div class="d-flex align-center gap-15">
                                             <input type="file" id="dish-image" class="form-control" accept="image/*" required>
                                             <div id="image-preview-container" style="display: none; width: 60px; height: 60px; overflow: hidden; border-radius: 8px; border: 1px solid var(--border-color);">
-                                                <img id="image-preview-mini" src="" style="width: 100%; height: 100%; object-fit: cover;">
+                                                <img id="image-preview-mini" alt="Food image preview" src="" style="width: 100%; height: 100%; object-fit: cover;">
                                             </div>
                                         </div>
                                     </div>
@@ -282,7 +282,7 @@
 
                     <!-- Manage Orders Tab -->
                     <div id="manage-orders" class="dashboard-tab" style="display: none;">
-                        <h1 class="mb-30">Manage Orders</h1>
+                        <h2 class="mb-30">Manage Orders</h1>
                         <div id="orders-list">
                             <!-- Populated via JS -->
                         </div>
@@ -290,7 +290,7 @@
 
                     <!-- My Requests Tab (Seeker) -->
                     <div id="my-requests" class="dashboard-tab" style="display: none;">
-                        <h1 class="mb-30">My Food Requests</h1>
+                        <h2 class="mb-30">My Food Requests</h1>
                         <div class="card card-body mb-20">
                             <div class="d-flex justify-between align-center mb-10">
                                 <h3>Active Requests</h3>
@@ -303,7 +303,7 @@
 
                     <!-- Profile Tab -->
                     <div id="profile" class="dashboard-tab" style="display: none;">
-                        <h1 class="mb-30">My Profile</h1>
+                        <h2 class="mb-30">My Profile</h1>
                         <div class="card card-body" style="max-width: 600px;">
                             <form onsubmit="event.preventDefault(); alert('Profile updated!');">
                                 <div class="form-group">
@@ -322,7 +322,7 @@
                                     <label class="form-label">Address</label>
                                     <input type="text" class="form-control" placeholder="Your location...">
                                 </div>
-                                <button class="btn btn-primary">Save Changes</button>
+                                <button type="button" class="btn btn-primary">Save Changes</button>
                             </form>
                         </div>
                     </div>
@@ -345,7 +345,7 @@
                 <p>Secure Payment Gateway</p>
             </div>
 
-            <button onclick="processPayment()" class="btn btn-primary" style="width: 100%; margin-top: 20px;">Confirm Payment</button>
+            <button type="button" onclick="processPayment()" class="btn btn-primary" style="width: 100%; margin-top: 20px;">Confirm Payment</button>
         </div>
     </div>
 
