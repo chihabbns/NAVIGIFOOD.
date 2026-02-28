@@ -70,10 +70,36 @@ document.addEventListener('DOMContentLoaded', function() {
     const urlParams = new URLSearchParams(window.location.search);
     const roleParam = urlParams.get('role');
     const roleSelect = document.getElementById('role');
+    const planSection = document.getElementById('planSection');
+    
+    // Define role categories
+    const sellerRoles   = ['restaurant', 'hotel', 'bakery', 'market', 'catering'];
+    const buyerRoles    = ['buyer', 'ngo'];
+
+    function togglePlanVisibility() {
+        if (!planSection || !roleSelect) return;
+        if (sellerRoles.includes(roleSelect.value)) {
+            planSection.style.display = 'block';
+        } else {
+            planSection.style.display = 'none';
+        }
+    }
+
+    if (roleSelect) {
+        // Handle Plan Selection UI
+        const planCards = document.querySelectorAll('.plan-card');
+        planCards.forEach(card => {
+            card.addEventListener('click', function() {
+                planCards.forEach(c => c.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // Toggle plan section based on role change
+        roleSelect.addEventListener('change', togglePlanVisibility);
+    }
 
     if (roleSelect && roleParam) {
-        const sellerRoles   = ['restaurant', 'hotel', 'bakery', 'market', 'catering'];
-        const buyerRoles    = ['buyer', 'ngo'];
         const allOptions    = Array.from(roleSelect.options);
         const optgroups     = Array.from(roleSelect.querySelectorAll('optgroup'));
 
@@ -112,6 +138,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Call it once on load to set initial state
+    togglePlanVisibility();
+
     // --- REGISTER FORM ---
     const registerForm = document.getElementById('registerForm');
     if (registerForm) {
@@ -124,6 +153,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const confirmPasswordInput = document.getElementById('confirm-password');
             const termsInput = document.getElementById('terms');
             const roleInput = document.getElementById('role');
+            const planInputs = document.querySelectorAll('input[name="plan"]');
             
             // Clear previous errors
             document.querySelectorAll('.error-msg').forEach(el => el.style.display = 'none');
@@ -166,6 +196,18 @@ document.addEventListener('DOMContentLoaded', function() {
                  isValid = false;
             }
 
+            // Validate Plan for Sellers
+            let selectedPlan = null;
+            if (roleInput && sellerRoles.includes(roleInput.value)) {
+                planInputs.forEach(input => {
+                    if (input.checked) selectedPlan = input.value;
+                });
+                if (!selectedPlan) {
+                    showError('planError', "Please select a plan for your business.");
+                    isValid = false;
+                }
+            }
+
             if(isValid) {
                 const email = emailInput.value.toLowerCase().trim();
                 const users = JSON.parse(localStorage.getItem('navigi_users')) || [];
@@ -182,6 +224,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     name: nameInput.value.trim(),
                     email: email,
                     role: roleInput ? roleInput.value : 'buyer',
+                    plan: selectedPlan || 'none',
                     password: passwordInput.value // In Prod: Hash this!
                 };
 

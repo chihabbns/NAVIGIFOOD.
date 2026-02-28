@@ -103,6 +103,227 @@
             </select>
           </div>
 
+          <!-- Plan Selection Section -->
+          <style>
+            .plan-selector-container {
+              margin: 30px 0;
+            }
+            .plan-selector-title {
+              font-size: 1.15rem;
+              font-weight: 700;
+              margin-bottom: 15px;
+              color: var(--text-color);
+              text-align: left;
+            }
+            .plans-wrapper {
+              display: grid;
+              grid-template-columns: 1fr; /* Stack vertically for the narrow auth box */
+              gap: 15px;
+            }
+            .plan-option {
+              position: relative;
+              background: var(--bg-white, #ffffff);
+              border: 1.5px solid var(--border-color);
+              border-radius: 12px;
+              padding: 20px 20px;
+              cursor: pointer;
+              transition: all 0.25s ease;
+              text-align: left;
+              box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+            }
+            .plan-option.pro-plan {
+              background: linear-gradient(to bottom right, #ffffff, #fffdf8);
+              border-color: #f8e1a6;
+            }
+            [data-theme="dark"] .plan-option {
+              background: var(--bg-card);
+              border-color: #333;
+            }
+            [data-theme="dark"] .plan-option.pro-plan {
+              background: linear-gradient(to bottom right, var(--bg-card), #2a2518);
+              border-color: #5c4e25;
+            }
+            
+            .plan-option:hover {
+              border-color: #999;
+              box-shadow: 0 8px 16px rgba(0,0,0,0.06);
+              transform: translateY(-2px);
+            }
+            .plan-option.pro-plan:hover {
+              border-color: #e6b800;
+              box-shadow: 0 8px 16px rgba(230, 184, 0, 0.15);
+            }
+            [data-theme="dark"] .plan-option:hover { border-color: #666; }
+            [data-theme="dark"] .plan-option.pro-plan:hover { border-color: #b38f00; }
+            
+            .plan-option.active {
+              border-color: var(--primary);
+              background: rgba(46, 204, 113, 0.04);
+              box-shadow: 0 0 0 1px var(--primary);
+            }
+            .plan-option.pro-plan.active {
+              border-color: #f39c12;
+              background: rgba(243, 156, 18, 0.05);
+              box-shadow: 0 0 0 1px #f39c12;
+            }
+            .plan-radio { display: none; }
+            .plan-header-title {
+              display: flex;
+              align-items: center;
+              margin-bottom: 5px;
+            }
+            .plan-checkbox {
+              width: 20px;
+              height: 20px;
+              border: 2px solid #ccc;
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              margin-right: 12px;
+              transition: all 0.2s ease;
+              flex-shrink: 0;
+            }
+            [data-theme="dark"] .plan-checkbox { border-color: #555; }
+            .plan-option.active .plan-checkbox {
+              border-color: var(--primary);
+              background: var(--primary);
+            }
+            .plan-option.pro-plan.active .plan-checkbox {
+              border-color: #f39c12;
+              background: #f39c12;
+            }
+            .plan-option.active .plan-checkbox::after {
+              content: '';
+              width: 8px;
+              height: 8px;
+              background: #fff;
+              border-radius: 50%;
+            }
+            .plan-name { font-weight: 700; font-size: 1.15rem; color: var(--text-color); line-height: 1; }
+            .plan-option.pro-plan .plan-name { color: #d68910; }
+            [data-theme="dark"] .plan-option.pro-plan .plan-name { color: #f5b041; }
+            
+            .plan-top-row {
+              display: flex;
+              justify-content: space-between;
+              align-items: flex-start;
+              margin-bottom: 8px;
+            }
+            
+            .plan-price-block { text-align: right; }
+            .plan-price { font-weight: 800; font-size: 1.35rem; color: var(--text-color); line-height: 1; }
+            .plan-period { font-size: 0.85rem; font-weight: 500; color: var(--text-gray); display: block; margin-top: 2px; }
+            
+            .plan-description {
+              font-size: 0.9rem;
+              color: var(--text-gray);
+              line-height: 1.5;
+              margin-left: 32px; /* align with text, bypassing checkbox */
+              margin-bottom: 15px;
+            }
+            .plan-divider {
+              height: 1px;
+              background: var(--border-color);
+              margin-left: 32px;
+              margin-bottom: 15px;
+            }
+            
+            .plan-features { list-style: none; padding: 0; margin: 0; margin-left: 32px; }
+            .plan-features li {
+              font-size: 0.9rem;
+              color: var(--text-color);
+              margin-bottom: 8px;
+              display: flex;
+              align-items: flex-start;
+              line-height: 1.3;
+            }
+            .plan-features li:last-child { margin-bottom: 0; }
+            .plan-features li i {
+              color: var(--primary);
+              margin-right: 10px;
+              font-size: 0.9rem;
+              margin-top: 3px;
+            }
+            .plan-option.pro-plan .plan-features li i { color: #f39c12; }
+            
+            .popular-badge {
+              position: absolute;
+              top: -12px;
+              left: 50%;
+              transform: translateX(-50%);
+              background: linear-gradient(135deg, #f5b041, #f39c12);
+              color: white;
+              font-size: 0.7rem;
+              font-weight: 800;
+              padding: 4px 15px;
+              border-radius: 20px;
+              letter-spacing: 0.5px;
+              box-shadow: 0 4px 8px rgba(243, 156, 18, 0.3);
+              white-space: nowrap;
+              border: 1px solid #e67e22;
+            }
+            [data-theme="dark"] .popular-badge {
+               background: linear-gradient(135deg, #f39c12, #d68910);
+               color: #fff;
+               border-color: #b9770e;
+               box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+            }
+          </style>
+
+          <!-- Plan Selection (Hidden by default, shown for sellers) -->
+          <div class="plan-selector-container" id="planSection" style="display: none;">
+            <div class="plan-selector-title">Select your business plan</div>
+            <div class="plans-wrapper">
+              
+              <!-- Free Plan -->
+              <label class="plan-option plan-card">
+                <input type="radio" name="plan" value="free" class="plan-radio" />
+                <div class="plan-top-row">
+                  <div class="plan-header-title">
+                    <div class="plan-checkbox"></div>
+                    <span class="plan-name">Free Plan</span>
+                  </div>
+                  <div class="plan-price-block">
+                    <div class="plan-price">0 DA</div>
+                  </div>
+                </div>
+                
+                <div class="plan-description">Essential tools to start rescuing your surplus food.</div>
+                <div class="plan-divider"></div>
+                <ul class="plan-features">
+                  <li><i class="fas fa-check"></i> Standard food listings</li>
+                  <li><i class="fas fa-check"></i> Basic analytics dashboard</li>
+                </ul>
+              </label>
+              
+              <!-- Pro Plan -->
+              <label class="plan-option plan-card pro-plan" style="margin-top: 5px;">
+                <input type="radio" name="plan" value="pro" class="plan-radio" />
+                <div class="popular-badge"><i class="fas fa-crown" style="margin-right: 4px; font-size: 0.65rem;"></i> MOST POPULAR</div>
+                <div class="plan-top-row">
+                  <div class="plan-header-title">
+                    <div class="plan-checkbox"></div>
+                    <span class="plan-name">Pro Plan</span>
+                  </div>
+                  <div class="plan-price-block">
+                    <div class="plan-price">1500 DA</div>
+                    <span class="plan-period">/ month</span>
+                  </div>
+                </div>
+                
+                <div class="plan-description">Advanced features to maximize your sales and reach.</div>
+                <div class="plan-divider"></div>
+                <ul class="plan-features">
+                  <li><i class="fas fa-check"></i> Priority search ranking</li>
+                  <li><i class="fas fa-check"></i> Homepage featured placement</li>
+                </ul>
+              </label>
+              
+            </div>
+            <div class="error-msg" id="planError" style="margin-top: 10px; text-align: left;">Please select a plan before continuing.</div>
+          </div>
+
           <div class="form-group text-start">
             <label for="password" class="form-label">Password</label>
             <div class="input-group">

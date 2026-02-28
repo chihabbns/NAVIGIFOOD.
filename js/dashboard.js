@@ -31,6 +31,25 @@ function updateUserProfile(user) {
     document.getElementById('profile-name').value = user.name;
     document.getElementById('profile-email').value = user.email;
 
+    // Plan display logic
+    const planInput = document.getElementById('profile-plan');
+    if (planInput) {
+        if (user.plan === 'pro') {
+            planInput.value = 'Pro (Premium)';
+            planInput.style.color = '#d68910';
+            
+            // Add a pro badge next to the user name in sidebar
+            const nameEl = document.getElementById('user-name');
+            nameEl.innerHTML = `${user.name} <i class="fas fa-crown" style="color: #f39c12; font-size: 0.8em; margin-left: 5px;" title="Pro Plan"></i>`;
+        } else if (user.plan === 'free') {
+            planInput.value = 'Free';
+        } else {
+            // Buyers/NGOs don't have a business plan
+            planInput.value = 'N/A';
+            planInput.parentElement.style.display = 'none';
+        }
+    }
+
     // Optional: Update avatar based on role
     const avatarIcon = document.getElementById('user-avatar-icon');
 
@@ -349,8 +368,18 @@ function handlePublishFree() {
 
 function handlePublishBoost() {
     if(validateForm()) {
-        const modal = document.getElementById('payment-modal');
-        if(modal) modal.style.display = 'flex';
+        const session = JSON.parse(localStorage.getItem('navigi_session'));
+        const isPro = session && session.user && session.user.plan === 'pro';
+
+        if (isPro) {
+            // Pro users get free boosts, bypass payment modal
+            alert("Pro Plan Perk: Your listing is automatically boosted for free!");
+            publishDish(true);
+        } else {
+            // Free users must pay
+            const modal = document.getElementById('payment-modal');
+            if(modal) modal.style.display = 'flex';
+        }
     }
 }
 
@@ -382,6 +411,14 @@ function processPayment() {
 }
 
 function publishDish(boosted) {
+    const session = JSON.parse(localStorage.getItem('navigi_session'));
+    const isPro = session && session.user && session.user.plan === 'pro';
+    
+    // Auto-boost for Pro users
+    if (isPro) {
+        boosted = true;
+    }
+
     const name = document.getElementById('dish-name').value;
     myListings.unshift({ id: Date.now(), title: name, status: "Active", boosted: boosted });
     renderListings();
