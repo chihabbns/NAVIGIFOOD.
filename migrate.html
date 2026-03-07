@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Migrate Data to Supabase</title>
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Our Files -->
+    <script src="js/supabase-config.js"></script>
+    <script src="js/data.js"></script>
+    <style>
+        body { font-family: tahoma, sans-serif; text-align: center; padding: 50px; background: #f4f7f6; }
+        button { background: #00875a; color: white; border: none; padding: 15px 30px; font-size: 1.2rem; cursor: pointer; border-radius: 8px; font-weight: bold;}
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        #status { margin-top: 20px; font-size: 1.2rem; color: #333; }
+        .success { color: #00875a; }
+        .error { color: #d9534f; }
+    </style>
+</head>
+<body>
+
+    <h1>🚀 أداة رفع البيانات إلى قاعدة البيانات</h1>
+    <p>هذه الأداة ستقوم بقراءة ملف <code>data.js</code> ورفع جميع العروض الموجودة فيه (المطاعم، الفنادق، إلخ) إلى قاعدة بيانات Supabase.</p>
+    <p style="color: red; font-weight: bold;">يجب أن تكون مسجل الدخول في الموقع بحسابك قبل الضغط على الزر!</p>
+    
+    <button id="migrateBtn" onclick="startMigration()">ابدأ عملية الرفع الآن</button>
+
+    <div id="status"></div>
+
+    <script>
+        async function startMigration() {
+            const btn = document.getElementById('migrateBtn');
+            const statusDiv = document.getElementById('status');
+            
+            if (!window.supabaseClient) {
+                statusDiv.innerHTML = '<span class="error">خطأ: تعذر الاتصال بـ Supabase.</span>';
+                return;
+            }
+
+            // Get current logged-in user
+            const { data: { session }, error: sessionError } = await window.supabaseClient.auth.getSession();
+            
+            if (!session) {
+                statusDiv.innerHTML = '<span class="error">خطأ: يجب عليك تسجيل الدخول في الموقع أولاً (افتح صفحة تسجيل الدخول، سجل دخولك، ثم عد إلى هنا).</span>';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = 'جاري الرفع... يرجى الانتظار <span class="loader"></span>';
+            statusDiv.innerHTML = `جاري تجهيز ${foodItems.length} عنصر للرفع...`;
+
+            let successCount = 0;
+            let errorCount = 0;
+
+            for (let i = 0; i < foodItems.length; i++) {
+                const item = foodItems[i];
+                
+                // Map local data to database schema
+                const dbItem = {
+                    donor_id: session.user.id, // Assign to current user
+                    title: item.title,
+                    type: item.type, // 'Restaurant', 'Hotel', etc.
+                    food_type: item.foodType || 'meals', // 'Fast Food', 'Traditional', etc.
+                    price: item.price || 0,
+                    original_price: item.originalPrice || 0,
+                    location: item.location,
+                    merchant_name: item.donor, // NEW: preserve original store name
+                    time_left: item.timeLeft,
+                    quantity: 1, // Default quantity
+                    image: item.image, // Keep relative path like "assets/images/..."
+                    description: item.description,
+                    promoted: item.promoted || false,
+                    status: 'available'
+                };
+
+                statusDiv.innerHTML = `جاري رفع العنصر ${i + 1} من ${foodItems.length} (${item.title})...`;
+
+                const { error } = await window.supabaseClient
+                    .from('food_items')
+                    .insert([dbItem]);
+
+                if (error) {
+                    console.error('Error inserting item:', item.title, error);
+                    errorCount++;
+                } else {
+                    successCount++;
+                }
+
+                // Add a small delay to not overwhelm the database API
+                await new Promise(resolve => setTimeout(resolve, 50)); 
+            }
+
+            btn.innerHTML = 'تم الانتهاء!';
+            statusDiv.innerHTML = `<span class="success">🎉 عملية الرفع مكتملة! تم رفع ${successCount} عرض بنجاح، وفشل ${errorCount} عرض.</span>`;
+            
+            if (successCount > 0) {
+                statusDiv.innerHTML += '<br><br><a href="dashboard.html" style="color: #00875a; font-weight: bold;">العودة إلى لوحة التحكم لرؤية العروض</a>';
+            }
+        }
+    </script>
+</body>
+</html>

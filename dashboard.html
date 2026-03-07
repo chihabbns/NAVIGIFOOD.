@@ -73,7 +73,14 @@
                             <a href="#" class="nav-link-item d-flex align-center gap-10" onclick="showTab('my-requests')"><i class="fas fa-shopping-basket" style="width: 20px;"></i> My Requests</a>
                         </li>
 
-                        <!-- Common Links -->
+                         <li class="mb-15">
+                            <a href="#" class="nav-link-item d-flex align-center gap-10" onclick="showTab('messages')">
+                                <i class="fas fa-envelope" style="width: 20px;"></i> Messages 
+                                <span id="msg-badge" class="badge" style="display: none; background: var(--danger); color: white; border-radius: 50%; padding: 2px 6px; font-size: 0.7rem; margin-left: auto;">0</span>
+                            </a>
+                        </li>
+
+                        <!-- Profile link -->
                          <li class="mb-15">
                             <a href="#" class="nav-link-item d-flex align-center gap-10" onclick="showTab('profile')"><i class="fas fa-user-circle" style="width: 20px;"></i> Profile</a>
                         </li>
@@ -99,15 +106,15 @@
                         <!-- Provider Stats (Default) -->
                         <div id="provider-stats" class="grid grid-fit-200 mb-40 role-content provider-content">
                              <div class="card card-body text-center">
-                                <h2 class="text-primary">8</h2>
+                                <h2 class="text-primary" id="stat-active-dishes">0</h2>
                                 <p>Active Dishes</p>
                              </div>
                              <div class="card card-body text-center">
-                                <h2 class="text-primary">3</h2>
+                                <h2 class="text-primary" id="stat-pending-orders">0</h2>
                                 <p>Pending Orders</p>
                              </div>
                              <div class="card card-body text-center">
-                                <h2 class="text-primary">12,500 DA</h2>
+                                <h2 class="text-primary" id="stat-total-revenue">0 DA</h2>
                                 <p>Total Revenue</p>
                              </div>
                         </div>
@@ -115,15 +122,15 @@
                         <!-- Seeker Stats -->
                         <div id="seeker-stats" class="grid grid-fit-200 mb-40 role-content seeker-content" style="display: none;">
                             <div class="card card-body text-center">
-                               <h2 class="text-primary">5</h2>
+                               <h2 class="text-primary" id="stat-meals-rescued">0</h2>
                                <p>Meals Rescued</p>
                             </div>
                             <div class="card card-body text-center">
-                               <h2 class="text-success">2,400 DA</h2>
+                               <h2 class="text-success" id="stat-money-saved">0 DA</h2>
                                <p>Money Saved</p>
                             </div>
                             <div class="card card-body text-center">
-                               <h2 class="text-warning">1</h2>
+                               <h2 class="text-warning" id="stat-pending-requests">0</h2>
                                <p>Pending Requests</p>
                             </div>
                        </div>
@@ -168,13 +175,13 @@
                             <!-- Form Column -->
                             <div class="card card-body">
                                 <form id="add-dish-form">
-                                    <div class="grid grid-fit-250 gap-20">
+                                    <div class="grid gap-20" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
                                         <div class="form-group">
                                             <label class="form-label">Dish Name</label>
                                             <input type="text" id="dish-name" class="form-control" placeholder="e.g. Mhajeb Box" required>
                                         </div>
                                         <div class="form-group">
-                                            <label class="form-label">Category</label>
+                                            <label class="form-label">Vendor Category</label>
                                             <select id="dish-category" class="form-control" required>
                                                 <option value="" disabled selected>Select Category</option>
                                                 <option value="Restaurant">Restaurant</option>
@@ -184,11 +191,27 @@
                                                 <option value="Event & Catering">Event & Catering</option>
                                             </select>
                                         </div>
+                                        <div class="form-group">
+                                            <label class="form-label">Food Type</label>
+                                            <select id="dish-food-type" class="form-control" required>
+                                                <option value="" disabled selected>Select Type</option>
+                                                <option value="Fast Food">Fast Food</option>
+                                                <option value="Traditional">Traditional</option>
+                                                <option value="Desserts">Desserts</option>
+                                                <option value="Bakery">Bakery</option>
+                                                <option value="Healthy">Healthy</option>
+                                            </select>
+                                        </div>
                                     </div>
                                     
                                     <div class="form-group">
                                         <label class="form-label">Description (Darja recommended)</label>
                                         <textarea id="dish-desc" class="form-control" rows="3" placeholder="Describe the dish..." required></textarea>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">Exact Location</label>
+                                        <input type="text" id="dish-location" class="form-control" placeholder="e.g. Algiers Center, Rue Didouche Mourad" required>
                                     </div>
                                     
                                     <div class="grid grid-fit-200 gap-20">
@@ -272,6 +295,10 @@
                                                 <i class="fas fa-calendar-times text-danger"></i>
                                                 <span>Expires: <span id="preview-expiry-val">YYYY-MM-DD</span></span>
                                             </div>
+                                            <div class="d-flex align-center gap-10 mt-5">
+                                                <i class="fas fa-map-marker-alt text-primary"></i>
+                                                <span id="preview-location-val" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Algeria</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -305,7 +332,7 @@
                     <div id="profile" class="dashboard-tab" style="display: none;">
                         <h2 class="mb-30">My Profile</h1>
                         <div class="card card-body" style="max-width: 600px;">
-                            <form onsubmit="event.preventDefault(); alert('Profile updated!');">
+                            <form onsubmit="event.preventDefault(); window.updateProfile();">
                                 <div class="form-group">
                                     <label class="form-label">Full Name</label>
                                     <input type="text" id="profile-name" class="form-control" value="User Name">
@@ -316,7 +343,7 @@
                                 </div>
                                 <div class="form-group">
                                     <label class="form-label">Phone</label>
-                                    <input type="tel" class="form-control" placeholder="+213...">
+                                    <input type="tel" id="profile-phone" class="form-control" placeholder="+213...">
                                 </div>
                                 <div class="form-group">
                                     <label class="form-label">Current Plan</label>
@@ -324,16 +351,72 @@
                                 </div>
                                 <div class="form-group">
                                     <label class="form-label">Address</label>
-                                    <input type="text" class="form-control" placeholder="Your location...">
+                                    <input type="text" id="profile-address" class="form-control" placeholder="Your location...">
                                 </div>
-                                <button type="button" class="btn btn-primary">Save Changes</button>
+                                <button type="submit" id="save-profile-btn" class="btn btn-primary">Save Changes</button>
                             </form>
                         </div>
                     </div>
 
+                    <!-- Messages Tab -->
+                    <div id="messages" class="dashboard-tab" style="display: none;">
+                        <h2 class="mb-30">Your Messages</h2>
+                        <div class="grid gap-20 align-start" style="grid-template-columns: 280px 1fr;" id="messages-grid-layout">
+                            <!-- Message List -->
+                            <div class="card card-body p-0" style="max-height: 600px; overflow-y: auto; background: var(--bg-light);">
+                                <div id="messages-list-sidebar">
+                                    <p class="p-20 text-gray">Loading messages...</p>
+                                </div>
+                            </div>
+                            <!-- Message Detail -->
+                            <div class="card card-body" id="message-detail-view" style="min-height: 500px; display: flex; flex-direction: column;">
+                                <div id="message-detail-empty" class="text-center" style="margin: auto;">
+                                    <i class="fas fa-envelope-open fa-3x text-gray mb-15"></i>
+                                    <p class="text-gray">Select a message to read</p>
+                                </div>
+                                <div id="message-detail-active" style="display: none; flex-direction: column; height: 100%;">
+                                    <!-- Populated via JS -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    </div>
                 </div>
 
             </div>
+        </div>
+    </div>
+
+    <!-- Edit Listing Modal -->
+    <div id="edit-modal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 500px;">
+            <span class="close-modal" onclick="closeEditModal()">&times;</span>
+            <h2 style="margin-bottom: 20px;">Edit Listing</h2>
+            <form id="edit-dish-form">
+                <input type="hidden" id="edit-dish-id">
+                <div class="form-group">
+                    <label class="form-label">Dish Name</label>
+                    <input type="text" id="edit-dish-name" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Price (DA)</label>
+                    <input type="number" id="edit-dish-price" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Quantity</label>
+                    <input type="number" id="edit-dish-quantity" class="form-control" required min="1">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <select id="edit-dish-status" class="form-control" required>
+                        <option value="available">Available</option>
+                        <option value="sold out">Sold Out</option>
+                        <option value="hidden">Hidden</option>
+                    </select>
+                </div>
+                <button type="button" onclick="saveEditListing()" class="btn btn-primary" style="width: 100%; margin-top: 15px;">Save Changes</button>
+            </form>
         </div>
     </div>
 
@@ -368,6 +451,13 @@
     </footer>
 
     <script src="js/data.js"></script>
+
+    <!-- Toast Notifications Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script src="js/supabase-config.js"></script>
     <script src="js/main.js"></script>
     <script src="js/dashboard.js"></script>
 </body>

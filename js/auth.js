@@ -141,10 +141,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // Call it once on load to set initial state
     togglePlanVisibility();
 
-    // --- REGISTER FORM ---
+    // ================================================================
+    //    REGISTER FORM — Supabase Auth
+    // ================================================================
     const registerForm = document.getElementById('registerForm');
     if (registerForm) {
-        registerForm.addEventListener('submit', function (e) {
+        registerForm.addEventListener('submit', async function (e) {
             e.preventDefault();
             
             const nameInput = document.getElementById('name');
@@ -154,6 +156,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const termsInput = document.getElementById('terms');
             const roleInput = document.getElementById('role');
             const planInputs = document.querySelectorAll('input[name="plan"]');
+            const btn = this.querySelector('button[type="submit"]');
+            const originalBtnText = btn ? btn.innerText : 'Create Account';
             
             // Clear previous errors
             document.querySelectorAll('.error-msg').forEach(el => el.style.display = 'none');
@@ -210,66 +214,102 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if(isValid) {
                 const email = emailInput.value.toLowerCase().trim();
-                const users = JSON.parse(localStorage.getItem('navigi_users')) || [];
-                
-                // Check if exists
-                if(users.find(u => u.email === email)) {
-                    showError('generalError', "This email is already registered. Please login.");
-                    return;
-                }
+                const name = nameInput.value.trim();
+                const role = roleInput ? roleInput.value : 'buyer';
+                const plan = selectedPlan || 'none';
 
-                // Create User
-                const newUser = {
-                    id: Date.now(),
-                    name: nameInput.value.trim(),
-                    email: email,
-                    role: roleInput ? roleInput.value : 'buyer',
-                    plan: selectedPlan || 'none',
-                    password: passwordInput.value // In Prod: Hash this!
-                };
-
-                // Save User
-                users.push(newUser);
-                localStorage.setItem('navigi_users', JSON.stringify(users));
-
-                // Auto Login Logic
-                const session = {
-                    user: newUser,
-                    token: 'mock-token-' + Date.now(),
-                    expiry: Date.now() + 3600000 // 1 hour
-                };
-                localStorage.setItem('navigi_session', JSON.stringify(session));
-
-                // UI Feedback
-                const btn = this.querySelector('button[type="submit"]');
+                // Show loading state
                 if(btn) {
-                    btn.innerText = 'Account Created! Redirecting...';
+                    btn.innerText = 'Creating Account...';
                     btn.disabled = true;
                 }
-                const successMsg = document.getElementById('successMsg');
-                if(successMsg) {
-                    successMsg.textContent = "Welcome to NavigiFood!";
-                    successMsg.style.display = 'block';
-                }
 
-                // Redirect
-                setTimeout(() => {
-                    // Redirect to dashboard if donor/ngo, else home
-                    const partnerRoles = ['donor', 'ngo', 'restaurant', 'hotel', 'bakery', 'market', 'catering', 'admin'];
-                    if(partnerRoles.includes(newUser.role)) {
-                         window.location.href = 'dashboard.html';
-                    } else {
-                         window.location.href = 'index.html';
+                try {
+                    // 1. Sign up with Supabase Auth
+                    const { data: authData, error: authError } = await window.supabaseClient.auth.signUp({
+                        email: email,
+                        password: passwordInput.value,
+                        options: {
+                            data: {
+                                name: name,
+                                role: role,
+                                plan: plan
+                            }
+                        }
+                    });
+
+                    if (authError) {
+                        throw authError;
                     }
-                }, 1500);
+
+                    // 2. Insert profile into profiles table
+                    if (authData.user) {
+                        const { error: profileError } = await window.supabaseClient
+                            .from('profiles')
+                            .insert({
+                                id: authData.user.id,
+                                name: name,
+                                email: email,
+                                role: role,
+                                plan: plan
+                            });
+
+                        if (profileError) {
+                            console.error('Profile creation error:', profileError);
+                            // Non-fatal — auth account was created, profile can be created later
+                        }
+                    }
+
+                    // 3. Success UI
+                    const successMsg = document.getElementById('successMsg');
+                    if(successMsg) {
+                        successMsg.textContent = "Welcome to NavigiFood!";
+                        successMsg.style.display = 'block';
+                    }
+                    if(btn) {
+                        btn.innerText = 'Account Created! Redirecting...';
+                    }
+
+                    // 4. Redirect
+                    setTimeout(() => {
+                        const partnerRoles = ['donor', 'ngo', 'restaurant', 'hotel', 'bakery', 'market', 'catering', 'admin'];
+                        if(partnerRoles.includes(role)) {
+                             window.location.href = 'dashboard.html';
+                        } else {
+                             window.location.href = 'index.html';
+                        }
+                    }, 1500);
+
+                } catch (error) {
+                    console.error('Registration error:', error);
+                    let message = 'An error occurred during registration. Please try again.';
+                    
+                    if (error.message) {
+                        if (error.message.includes('already registered')) {
+                            message = 'This email is already registered. Please login.';
+                        } else if (error.message.includes('password')) {
+                            message = 'Password must be at least 6 characters.';
+                        } else {
+                            message = error.message;
+                        }
+                    }
+
+                    showError('generalError', message);
+                    if(btn) {
+                        btn.innerText = originalBtnText;
+                        btn.disabled = false;
+                    }
+                }
             }
         });
     }
 
-    // --- LOGIN FORM ---
+    // ================================================================
+    //    LOGIN FORM — Supabase Auth
+    // ================================================================
     const loginForm = document.getElementById('loginForm');
     if (loginForm) {
-        loginForm.addEventListener('submit', function (e) {
+        loginForm.addEventListener('submit', async function (e) {
             e.preventDefault();
             
             const emailInput = document.getElementById('email');
@@ -298,55 +338,65 @@ document.addEventListener('DOMContentLoaded', function() {
     
             if (isValid) {
                 const email = emailInput.value.toLowerCase().trim();
-                const password = passwordInput.value;
-    
+
                 if(btn) {
                     btn.innerText = 'Verifying...';
                     btn.disabled = true;
                 }
-    
-                // Simulate Network Delay
-                setTimeout(() => {
-                    const users = JSON.parse(localStorage.getItem('navigi_users')) || [];
-                    
-                    // Super Admin Backdoor (for testing)
-                    if (email === 'admin@navigifood.com' && password === 'admin123') {
-                        users.push({ name: 'Admin', email: email, role: 'admin', password: password });
+
+                try {
+                    // Sign in with Supabase
+                    const { data, error } = await window.supabaseClient.auth.signInWithPassword({
+                        email: email,
+                        password: passwordInput.value
+                    });
+
+                    if (error) {
+                        throw error;
                     }
 
-                    const user = users.find(u => u.email === email && u.password === password);
-    
-                    if (user) {
-                        // Success
-                        const session = {
-                            user: user,
-                            token: 'mock-token-' + Date.now(),
-                            expiry: Date.now() + 3600000 // 1 hour
-                        };
-                        localStorage.setItem('navigi_session', JSON.stringify(session));
-        
-                        if(successMsg) {
-                            successMsg.textContent = "Login successful! Redirecting...";
-                            successMsg.style.display = 'block';
-                        }
-                        
-                        setTimeout(() => {
-                           const partnerRoles = ['donor', 'ngo', 'restaurant', 'hotel', 'bakery', 'market', 'catering', 'admin'];
-                           if(partnerRoles.includes(user.role)) {
-                               window.location.href = 'dashboard.html';
-                           } else {
-                               window.location.href = 'index.html';
-                           }
-                        }, 1000);
-                    } else {
-                        // Failure
-                        showError('generalError', "Invalid email or password. Please try again.");
-                        if(btn) {
-                            btn.innerText = originalText;
-                            btn.disabled = false;
-                        }
+                    // Fetch user profile from profiles table
+                    const { data: profile } = await window.supabaseClient
+                        .from('profiles')
+                        .select('*')
+                        .eq('id', data.user.id)
+                        .single();
+
+                    if(successMsg) {
+                        successMsg.textContent = "Login successful! Redirecting...";
+                        successMsg.style.display = 'block';
                     }
-                }, 800);
+                    
+                    // Redirect based on role
+                    setTimeout(() => {
+                        const role = profile ? profile.role : (data.user.user_metadata?.role || 'buyer');
+                        const partnerRoles = ['donor', 'ngo', 'restaurant', 'hotel', 'bakery', 'market', 'catering', 'admin'];
+                        if(partnerRoles.includes(role)) {
+                            window.location.href = 'dashboard.html';
+                        } else {
+                            window.location.href = 'index.html';
+                        }
+                    }, 1000);
+
+                } catch (error) {
+                    console.error('Login error:', error);
+                    let message = 'Invalid email or password. Please try again.';
+                    
+                    // Custom messages in Arabic for better user experience
+                    if (error.message === 'Invalid login credentials') {
+                        message = 'البريد الإلكتروني أو كلمة المرور غير صحيحة. يرجى المحاولة مرة أخرى.';
+                    } else if (error.message.includes('Email not confirmed')) {
+                        message = 'يرجى تأكيد بريدك الإلكتروني من خلال الرابط المرسل إليك.';
+                    } else {
+                        message = error.message;
+                    }
+
+                    showError('generalError', message);
+                    if(btn) {
+                        btn.innerText = originalBtnText;
+                        btn.disabled = false;
+                    }
+                }
             }
         });
     }

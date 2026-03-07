@@ -150,47 +150,159 @@
     </footer>
 
     <script src="js/data.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
     <script src="js/main.js"></script>
     <script>
       // Page specific logic to load item details
-      document.addEventListener('DOMContentLoaded', () => {
+      document.addEventListener('DOMContentLoaded', async () => {
         const urlParams = new URLSearchParams(window.location.search);
-        const id = parseInt(urlParams.get('id'));
+        const idParam = urlParams.get('id');
         const summaryContainer = document.getElementById('reserve-item-summary');
         
-        if (id && typeof foodItems !== 'undefined') {
-            const item = foodItems.find(i => i.id === id);
-            if (item) {
-                summaryContainer.innerHTML = `
-                    <div class="item-summary">
-                        <img src="${item.image}" alt="${item.title}">
-                        <div>
-                            <h3>${item.title}</h3>
-                            <p class="text-primary"><i class="fas fa-store"></i> ${item.donor}</p>
-                            <span class="price">${item.price.toFixed(0)} DA</span>
-                            <span style="font-size: 0.9rem; text-decoration: line-through; color: var(--text-gray); margin-left: 10px;">${item.originalPrice.toFixed(0)} DA</span>
-                        </div>
-                    </div>
-                    <div>
-                        <p><i class="fas fa-map-marker-alt text-primary"></i> <strong>Location:</strong> ${item.location}</p>
-                        <p><i class="fas fa-clock text-danger"></i> <strong>Must be picked up by:</strong> ${item.timeLeft}</p>
-                    </div>
-                `;
-            } else {
-                summaryContainer.innerHTML = '<p>Item not found.</p>';
-            }
-        } else {
+        if (!idParam) {
             summaryContainer.innerHTML = '<p>No item selected.</p>';
+            return;
+        }
+
+        summaryContainer.innerHTML = '<p><i class=\"fas fa-spinner fa-spin\"></i> Loading item details...</p>';
+        
+        let item = null;
+
+        // 1. Try fetching from Supabase
+        if (window.supabaseClient) {
+            try {
+                const { data, error } = await window.supabaseClient
+                    .from('food_items')
+                    .select('*, profiles(name)')
+                    .eq('id', idParam)
+                    .single();
+                
+                if (!error && data) {
+                    item = {
+                        id: data.id,
+                        donor_id: data.donor_id,
+                        title: data.title,
+                        image: data.image,
+                        donor: data.profiles ? data.profiles.name : 'Unknown Provider',
+                        price: data.price,
+                        originalPrice: data.original_price,
+                        location: data.location,
+                        timeLeft: data.time_left
+                    };
+                }
+            } catch (e) { console.error('Supabase fetch error:', e); }
+        }
+
+        // 2. Fallback to local data
+        if (!item && typeof foodItems !== 'undefined') {
+            const numericId = parseInt(idParam);
+            item = foodItems.find(i => i.id === numericId || String(i.id) === idParam);
+        }
+
+        if (item) {
+            summaryContainer.innerHTML = `
+                <div class="item-summary">
+                    <img src="${item.image}" alt="${item.title}">
+                    <div>
+                        <h3>${item.title}</h3>
+                        <p class="text-primary"><i class="fas fa-store"></i> ${item.donor}</p>
+                        <span class="price">${item.price.toFixed(0)} DA</span>
+                        <span style="font-size: 0.9rem; text-decoration: line-through; color: var(--text-gray); margin-left: 10px;">${item.originalPrice ? item.originalPrice.toFixed(0) : 0} DA</span>
+                    </div>
+                </div>
+                <div>
+                    <p><i class="fas fa-map-marker-alt text-primary"></i> <strong>Location:</strong> ${item.location}</p>
+                    <p><i class="fas fa-clock text-danger"></i> <strong>Must be picked up by:</strong> ${item.timeLeft}</p>
+                </div>
+            `;
+        } else {
+            summaryContainer.innerHTML = '<p>Item not found.</p>';
+            return;
         }
 
         // Handle form submission
-        document.getElementById('reserve-form').addEventListener('submit', (e) => {
+        document.getElementById('reserve-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            alert('Reservation Confirmed! A confirmation email has been sent to you.');
-            window.location.href = 'index.html'; // Redirect to home
+            
+            if (!window.supabaseClient) {
+                alert('Database connection not found.');
+                return;
+            }
+
+            const { data: { session } } = await window.supabaseClient.auth.getSession();
+            if (!session) {
+                alert('يرجى تسجيل الدخول كـ \"باحث عن طعام\" لإتمام الحجز.');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const buyerName = document.getElementById('name').value;
+            const buyerPhone = document.getElementById('phone').value;
+            const pickupTime = document.getElementById('pickup-time').value;
+            const btn = e.target.querySelector('button[type="submit"]');
+
+            if (!item.donor_id) {
+                alert('هذا العرض تجريبي ولا يمكن حجزه فعلياً.');
+                return;
+            }
+
+            // Generate a random 4-digit pickup code
+            const pickupCode = Math.floor(1000 + Math.random() * 9000).toString();
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class=\"fas fa-spinner fa-spin\"></i> جاري الحجز...';
+
+            try {
+                // 1. Fetch current quantity to ensure availability
+                const { data: currentItem, error: fetchError } = await window.supabaseClient
+                    .from('food_items')
+                    .select('quantity')
+                    .eq('id', item.id)
+                    .single();
+                
+                if (fetchError || !currentItem || currentItem.quantity <= 0) {
+                    alert('عذراً، لم تكتمل العملية لأن هذا العرض نفدت كميته للتو.');
+                    window.location.href = 'browse-food.html';
+                    return;
+                }
+
+                // 2. Insert the actual order
+                const { error } = await window.supabaseClient
+                    .from('orders')
+                    .insert([{
+                        food_id: item.id,
+                        buyer_id: session.user.id,
+                        donor_id: item.donor_id,
+                        quantity: 1,
+                        buyer_name: buyerName,
+                        buyer_phone: buyerPhone,
+                        pickup_time: pickupTime,
+                        status: 'Pending',
+                        pickup_code: pickupCode
+                    }]);
+
+                if (error) throw error;
+
+                // 3. Update Inventory (Decrement Quantity)
+                const newQuantity = currentItem.quantity - 1;
+                const newStatus = newQuantity > 0 ? 'available' : 'sold out';
+                
+                await window.supabaseClient
+                    .from('food_items')
+                    .update({ quantity: newQuantity, status: newStatus })
+                    .eq('id', item.id);
+
+                alert(`تم تأكيد حجزك بنجاح! 🎉\nكود الاستلام الخاص بك هو: ${pickupCode}\nسيصل إشعار لصاحب المطعم فوراً لتبليغه.`);
+                window.location.href = 'dashboard.html';
+            } catch (err) {
+                console.error('Reservation Error:', err);
+                alert('حدث خطأ أثناء الحجز، يرجى المحاولة لاحقاً.');
+                btn.disabled = false;
+                btn.innerHTML = 'Confirm Reservation';
+            }
         });
       });
     </script>
   </body>
 </html>
-

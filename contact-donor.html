@@ -78,12 +78,12 @@
               <div class="form-group text-start">
                 <label for="email" class="form-label">Your Email</label>
                 <div class="input-group">
-                    <input type="email" id="email" class="form-control" placeholder="Enter your email" required>
+                    <input type="email" id="email" class="form-control" placeholder="Enter your email" required disabled>
                     <i class="fas fa-envelope"></i>
                 </div>
               </div>
 
-              <button type="submit" class="btn btn-outline btn-block">Send Message</button>
+              <button type="submit" id="send-btn" class="btn btn-outline btn-block">Send Message</button>
             </form>
           </div>
         </div>
@@ -141,23 +141,73 @@
     </footer>
 
     <script src="js/data.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
     <script src="js/main.js"></script>
     <script>
       // Page specific logic to load donor details from item ID
-      document.addEventListener('DOMContentLoaded', () => {
+      document.addEventListener('DOMContentLoaded', async () => {
         const urlParams = new URLSearchParams(window.location.search);
-        const id = parseInt(urlParams.get('id')); // Item ID
+        const idParam = urlParams.get('id'); // Item ID
         const container = document.getElementById('donor-details');
         
-        if (id && typeof foodItems !== 'undefined') {
-            const item = foodItems.find(i => i.id === id);
-            
+        let item = null;
+        let currentUser = null;
+
+        if (!window.supabaseClient) {
+            alert('Database connection error.');
+            return;
+        }
+
+        // Get current user
+        const { data: { session } } = await window.supabaseClient.auth.getSession();
+        if (session) {
+            currentUser = session.user;
+            document.getElementById('email').value = currentUser.email;
+        } else {
+            alert('You must be logged in to send messages.');
+            window.location.href = 'login.html';
+            return;
+        }
+
+        async function loadDonor() {
+            if (!idParam) {
+                container.innerHTML = '<p>No item specified.</p>';
+                return;
+            }
+
+            // Try DB first
+            try {
+                const { data, error } = await window.supabaseClient
+                    .from('food_items')
+                    .select('*, profiles(name, role)')
+                    .eq('id', idParam)
+                    .single();
+                
+                if (!error && data) {
+                    item = {
+                        id: data.id,
+                        donor_id: data.donor_id,
+                        title: data.title,
+                        donor: data.profiles ? data.profiles.name : 'Unknown Provider',
+                        type: data.profiles ? data.profiles.role : data.type,
+                        location: data.location
+                    };
+                }
+            } catch (e) { console.error(e); }
+
+            // Fallback to local
+            if (!item && typeof foodItems !== 'undefined') {
+                const numericId = parseInt(idParam);
+                item = foodItems.find(i => i.id === numericId || String(i.id) === idParam);
+            }
+
             if (item) {
                 container.innerHTML = `
                     <div style="text-align: center; margin-bottom: 20px;">
                         <i class="fas fa-store fa-4x text-primary" style="margin-bottom: 10px;"></i>
                         <h2>${item.donor}</h2>
-                        <span class="badge badge-${item.type.toLowerCase()}">${item.type}</span>
+                        <span class="badge ${item.type ? 'badge-'+item.type.toLowerCase() : ''}">${item.type || 'Donor'}</span>
                     </div>
                     <div style="margin-top: 30px;">
                         <p><i class="fas fa-map-marker-alt text-primary"></i> <strong>Location:</strong> ${item.location}</p>
@@ -167,16 +217,49 @@
             } else {
                 container.innerHTML = '<p>Donor not found.</p>';
             }
-        } 
+        }
+
+        loadDonor();
         
         // Handle form
-        document.getElementById('contact-donor-form').addEventListener('submit', (e) => {
+        document.getElementById('contact-donor-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            alert('Message Sent! The donor will contact you shortly.');
-            window.history.back(); // Go back to previous page
+            
+            if (!item || !item.donor_id) {
+                alert('Cannot send message: Donor information missing.');
+                return;
+            }
+
+            const subject = document.getElementById('subject').value;
+            const content = document.getElementById('message').value;
+            const btn = document.getElementById('send-btn');
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
+            try {
+                const { error } = await window.supabaseClient
+                    .from('messages')
+                    .insert([{
+                        sender_id: currentUser.id,
+                        receiver_id: item.donor_id,
+                        food_id: item.id,
+                        subject: subject,
+                        content: content
+                    }]);
+
+                if (error) throw error;
+
+                alert('Message Sent! ✅\nThe donor will see your message in their dashboard.');
+                window.location.href = 'dashboard.html';
+            } catch (err) {
+                console.error('Error sending message:', err);
+                alert('Failed to send message. Please try again.');
+                btn.disabled = false;
+                btn.innerHTML = 'Send Message';
+            }
         });
       });
     </script>
   </body>
 </html>
-

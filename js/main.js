@@ -3,6 +3,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     initMobileMenu();
     initThemeToggle();   // Dark mode toggle
+    fetchGlobalSearchItems(); // Prefetch items for search bar
     initHomePage();
     initBrowsePage();
     initDetailsPage();
@@ -10,6 +11,24 @@ document.addEventListener('DOMContentLoaded', () => {
     initSearchSuggestions();
     checkAuth();
 });
+
+async function fetchGlobalSearchItems() {
+    if (window.supabaseClient) {
+        try {
+            const { data } = await window.supabaseClient
+                .from('food_items')
+                .select('*, profiles(name)')
+                .eq('status', 'available');
+            
+            if (data) {
+                window.globalSearchItems = data.map(item => ({
+                    ...item,
+                    donor: item.merchant_name || (item.profiles ? item.profiles.name : 'Unknown Provider')
+                }));
+            }
+        } catch(e) {}
+    }
+}
 
 /* ================================================================
    DARK MODE — Theme Toggle
@@ -94,20 +113,21 @@ function initSearchSuggestions() {
                 return;
             }
 
-            if (typeof foodItems === 'undefined') return;
+            const searchTarget = window.globalSearchItems || [];
+            if (searchTarget.length === 0) return;
 
             // Logic: Group by category
             const results = {
-                dishes: foodItems.filter(item => item.title.toLowerCase().includes(term))
+                dishes: searchTarget.filter(item => item.title.toLowerCase().includes(term))
                         .map(item => ({ text: item.title, icon: 'fas fa-utensils', meta: 'Dish' })),
-                donors: foodItems.filter(item => item.donor.toLowerCase().includes(term))
+                donors: searchTarget.filter(item => item.donor.toLowerCase().includes(term))
                         .map(item => ({ text: item.donor, icon: 'fas fa-store', meta: 'Merchant' })),
-                places: foodItems.filter(item => item.location.toLowerCase().includes(term))
+                places: searchTarget.filter(item => item.location.toLowerCase().includes(term))
                         .map(item => ({ text: item.location, icon: 'fas fa-map-marker-alt', meta: 'Location' }))
             };
 
             // Remove duplicates within groups
-            results.dishes = Array.from(new Set(results.dishes.map(r => r.text))).map(text => results.dishes.find(r => r.text === text)).slice(0, 3);
+            results.dishes = Array.from(new Set(results.dishes.map(r => r.text))).map(text => results.dishes.find(r => r.text === text)).slice(0, 4);
             results.donors = Array.from(new Set(results.donors.map(r => r.text))).map(text => results.donors.find(r => r.text === text)).slice(0, 2);
             results.places = Array.from(new Set(results.places.map(r => r.text))).map(text => results.places.find(r => r.text === text)).slice(0, 2);
 
@@ -152,12 +172,13 @@ function initSearchSuggestions() {
 }
 
 function showPopularSearches(container) {
-    if (typeof foodItems === 'undefined') return;
+    const searchTarget = window.globalSearchItems || [];
+    if (searchTarget.length === 0) return;
     
     // Popular = just some first items
     const popular = {
-        dishes: foodItems.slice(0, 3).map(item => ({ text: item.title, icon: 'fas fa-fire', meta: 'Trending' })),
-        places: [...new Set(foodItems.map(i => i.location))].slice(0, 2).map(loc => ({ text: loc, icon: 'fas fa-map-pin', meta: 'Nearby' }))
+        dishes: searchTarget.slice(0, 3).map(item => ({ text: item.title, icon: 'fas fa-fire', meta: 'Trending' })),
+        places: [...new Set(searchTarget.map(i => i.location))].slice(0, 2).map(loc => ({ text: loc, icon: 'fas fa-map-pin', meta: 'Nearby' }))
     };
 
     renderSuggestions(container, popular, "", "Popular Searches");
@@ -220,12 +241,13 @@ window.selectSuggestion = function(text, el) {
     }
 };
 
-function checkAuth() {
-    const session = JSON.parse(localStorage.getItem('navigi_session'));
+async function checkAuth() {
+    if (!window.supabaseClient) return;
+
+    const { data: { session } } = await window.supabaseClient.auth.getSession();
     const navLinks = document.getElementById('nav-links');
     
-    if (session && session.expiry > Date.now() && navLinks) {
-        const user = session.user;
+    if (session && navLinks) {
         // Target the last list item (usually the CTA button)
         const lastLi = navLinks.lastElementChild;
         
@@ -244,9 +266,11 @@ function checkAuth() {
     }
 }
 
-function logout(e) {
+async function logout(e) {
     if(e) e.preventDefault();
-    localStorage.removeItem('navigi_session');
+    if (window.supabaseClient) {
+        await window.supabaseClient.auth.signOut();
+    }
     window.location.href = 'index.html';
 }
 
@@ -269,7 +293,7 @@ function initMobileMenu() {
     }
 }
 
-function initHomePage() {
+async function initHomePage() {
     const categoryGrid = document.getElementById('category-grid');
     const featuredGrid = document.getElementById('featured-grid');
 
@@ -283,14 +307,57 @@ function initHomePage() {
         `).join('');
     }
 
-    // Render Featured Items (random 3 or first 3)
-    if (featuredGrid && typeof foodItems !== 'undefined') {
-        const featuredItems = foodItems.slice(0, 4); // Take first 4
-        featuredGrid.innerHTML = featuredItems.map(item => createFoodCard(item)).join('');
+    // Render Featured Items from Supabase
+    if (featuredGrid && window.supabaseClient) {
+        featuredGrid.innerHTML = '<p>Loading items...</p>';
+        let dbItems = [];
+        try {
+            const { data, error } = await window.supabaseClient
+                .from('food_items')
+                .select('*')
+                .eq('status', 'available')
+                .order('created_at', { ascending: false })
+                .limit(4);
+            
+            const { data: profilesData } = await window.supabaseClient.from('profiles').select('id, name');
+            const profileMap = {};
+            if (profilesData) {
+                profilesData.forEach(p => profileMap[p.id] = p.name);
+            }
+
+            if (!error && data && data.length > 0) {
+                dbItems = data.map(item => ({
+                    id: item.id,
+                    title: item.title,
+                    type: item.type,
+                    foodType: item.food_type,
+                    price: item.price,
+                    originalPrice: item.original_price,
+                    location: item.location,
+                    timeLeft: item.time_left,
+                    image: item.image,
+                    description: item.description,
+                    promoted: item.promoted,
+                    donor: profileMap[item.donor_id] || 'Unknown Provider'
+                }));
+            }
+        } catch (err) {
+            console.error(err);
+        }
+        
+        const localItems = typeof foodItems !== 'undefined' ? foodItems : [];
+        const allItems = [...dbItems, ...localItems];
+        window.globalSearchItems = allItems;
+
+        if (allItems.slice(0, 4).length > 0) {
+            featuredGrid.innerHTML = allItems.slice(0, 4).map(item => createFoodCard(item)).join('');
+        } else {
+            featuredGrid.innerHTML = '<p>No items found.</p>';
+        }
     }
 }
 
-function initBrowsePage() {
+async function initBrowsePage() {
     const browseGrid     = document.getElementById('browse-grid');
     const resultsCount   = document.getElementById('results-count');
     const priceRange     = document.getElementById('price-range');
@@ -309,8 +376,48 @@ function initBrowsePage() {
     const ftCheckboxes   = document.querySelectorAll('.ft-checkbox');
     
     let activeFilters = [];
+    let liveFoodItems = [];
 
-    if (!browseGrid || typeof foodItems === 'undefined') return;
+    if (!browseGrid || !window.supabaseClient) return;
+
+    // Fetch items from database
+    let dbItems = [];
+    try {
+        const { data, error } = await window.supabaseClient
+            .from('food_items')
+            .select('*')
+            .eq('status', 'available')
+            .order('created_at', { ascending: false });
+            
+        const { data: profilesData } = await window.supabaseClient.from('profiles').select('id, name');
+        const profileMap = {};
+        if (profilesData) {
+            profilesData.forEach(p => profileMap[p.id] = p.name);
+        }
+
+        if (!error && data) {
+            dbItems = data.map(item => ({
+                id: item.id,
+                title: item.title,
+                type: item.type,
+                foodType: item.food_type,
+                price: item.price,
+                originalPrice: item.original_price,
+                location: item.location,
+                timeLeft: item.time_left,
+                image: item.image,
+                description: item.description,
+                promoted: item.promoted,
+                donor: item.merchant_name || profileMap[item.donor_id] || 'Unknown Provider'
+            }));
+        }
+    } catch (err) {
+        console.error("Supabase fetch error:", err);
+    }
+
+    const localItems = typeof foodItems !== 'undefined' ? foodItems : [];
+    liveFoodItems = [...dbItems, ...localItems];
+    window.globalSearchItems = liveFoodItems; // Export for global search
 
     // Check for URL params (category link or search from homepage)
     const urlParams      = new URLSearchParams(window.location.search);
@@ -422,7 +529,7 @@ function initBrowsePage() {
 
     // --- Core filter + sort function ---
     function applyFilters() {
-        let items = [...foodItems];
+        let items = [...liveFoodItems];
 
         // 1 — Category filter
         const checkedCats = Array.from(catFilters)
@@ -525,45 +632,98 @@ function renderGrid(container, items) {
     container.innerHTML = items.map(item => createFoodCard(item)).join('');
 }
 
-function initDetailsPage() {
+async function initDetailsPage() {
     const detailsContainer = document.getElementById('food-details-container');
-    if (detailsContainer && typeof foodItems !== 'undefined') {
-        const urlParams = new URLSearchParams(window.location.search);
-        const id = parseInt(urlParams.get('id'));
+    if (!detailsContainer) return;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const idParam = urlParams.get('id');
+    if (!idParam) return;
+
+    detailsContainer.innerHTML = '<div class="text-center p-20">Loading item details...</div>';
+
+    let item = null;
+
+    // Try to fetch from Supabase first
+    if (window.supabaseClient) {
+        try {
+            const { data: dbData, error } = await window.supabaseClient
+                .from('food_items')
+                .select('*')
+                .eq('id', idParam)
+                .single();
+
+            if (!error && dbData) {
+                // Fetch donor name
+                let donorName = 'Unknown Provider';
+                const { data: profileData } = await window.supabaseClient
+                    .from('profiles')
+                    .select('name')
+                    .eq('id', dbData.donor_id)
+                    .single();
+                
+                if (profileData) donorName = profileData.name;
+
+                item = {
+                    id: dbData.id,
+                    title: dbData.title,
+                    type: dbData.type,
+                    price: dbData.price,
+                    originalPrice: dbData.original_price,
+                    location: dbData.location,
+                    timeLeft: dbData.time_left,
+                    image: dbData.image,
+                    description: dbData.description || 'No description provided.',
+                    donor: donorName
+                };
+            }
+        } catch (e) {
+            console.error("Error fetching from Supabase:", e);
+        }
+    }
+
+    // Fall back to local items if not found in db
+    if (!item && typeof foodItems !== 'undefined' && foodItems.length > 0) {
+        const numericId = parseInt(idParam);
+        item = foodItems.find(i => i.id === numericId || String(i.id) === idParam);
+    }
+    
+    if (item) {
+        const discount = item.originalPrice > 0 ? Math.round(((item.originalPrice - item.price) / item.originalPrice) * 100) : 0;
         
-        const item = foodItems.find(i => i.id === id);
+        document.title = `${item.title} - NavigiFood`;
         
-        if (item) {
-            const discount = Math.round(((item.originalPrice - item.price) / item.originalPrice) * 100);
-            
-            document.title = `${item.title} - NavigiFood`;
-            
-            detailsContainer.innerHTML = `
-                <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px;">
-                    <div>
-                        <img src="${item.image}" class="img-fluid" style="width: 100%; border-radius: var(--radius-md); box-shadow: var(--shadow-md);" alt="${item.title}">
-                    </div>
-                    <div>
-                        <span class="badge badge-${item.type.toLowerCase()}" style="font-size: 1rem; padding: 6px 12px;">${item.type}</span>
-                        <h1 style="margin-top: 10px;">${item.title}</h1>
-                        <p class="text-primary" style="font-weight: 500; font-size: 1.1rem;"><i class="fas fa-store"></i> ${item.donor}</p>
-                        
-                        <div style="background: var(--bg-light); padding: 20px; border-radius: var(--radius-md); margin: 20px 0;">
-                            <div style="display: flex; align-items: baseline; gap: 15px; margin-bottom: 15px;">
-                                <span style="font-size: 2.5rem; font-weight: 700; color: var(--primary);">${item.price.toFixed(0)} DA</span>
-                                <span style="font-size: 1.2rem; text-decoration: line-through; color: var(--text-gray);">${item.originalPrice.toFixed(0)} DA</span>
-                                <span style="background: var(--danger); color: white; padding: 4px 10px; border-radius: 20px; font-weight: bold;">Save ${discount}%</span>
-                            </div>
-                            <p>${item.description}</p>
-                            <div style="margin-top: 20px;">
-                                <p><i class="fas fa-clock text-danger"></i> <strong>Pickup Time:</strong> Expires in ${item.timeLeft}</p>
-                                <p><i class="fas fa-map-marker-alt text-primary"></i> <strong>Location:</strong> ${item.location}</p>
-                            </div>
-                        </div>
-                        
-                        <div id="action-buttons"></div>
-                    </div>
+        let safeTimeLeft = item.timeLeft || '';
+        if (safeTimeLeft && !safeTimeLeft.includes('left') && !safeTimeLeft.includes('ينتهي')) {
+            safeTimeLeft += ' left';
+        }
+
+        detailsContainer.innerHTML = `
+            <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px;">
+                <div>
+                    <img src="${item.image}" class="img-fluid" style="width: 100%; border-radius: var(--radius-md); box-shadow: var(--shadow-md);" alt="${item.title}">
                 </div>
+                <div>
+                    <span class="badge badge-${item.type.toLowerCase()}" style="font-size: 1rem; padding: 6px 12px;">${item.type}</span>
+                    <h1 style="margin-top: 10px;">${item.title}</h1>
+                    <p class="text-primary" style="font-weight: 500; font-size: 1.1rem;"><i class="fas fa-store"></i> ${item.donor}</p>
+                    
+                    <div style="background: var(--bg-light); padding: 20px; border-radius: var(--radius-md); margin: 20px 0;">
+                        <div style="display: flex; align-items: baseline; gap: 15px; margin-bottom: 15px;">
+                            <span style="font-size: 2.5rem; font-weight: 700; color: var(--primary);">${item.price.toFixed(0)} DA</span>
+                            <span style="font-size: 1.2rem; text-decoration: line-through; color: var(--text-gray);">${item.originalPrice.toFixed(0)} DA</span>
+                            <span style="background: var(--danger); color: white; padding: 4px 10px; border-radius: 20px; font-weight: bold;">Save ${discount}%</span>
+                        </div>
+                        <p>${item.description}</p>
+                        <div style="margin-top: 20px;">
+                            <p><i class="fas fa-clock text-danger"></i> <strong>Pickup Time:</strong> ${safeTimeLeft}</p>
+                            <p><i class="fas fa-map-marker-alt text-primary"></i> <strong>Location:</strong> ${item.location}</p>
+                        </div>
+                    </div>
+                        
+                    <div id="action-buttons"></div>
+                </div>
+            </div>
                 
                 <div style="margin-top: 50px;">
                     <h3><i class="fas fa-map-marked-alt text-primary"></i> Pickup Location</h3>
@@ -598,9 +758,8 @@ function initDetailsPage() {
                 `;
             }
         } else {
-            detailsContainer.innerHTML = '<h2>Item not found</h2><a href="browse-food.html" class="btn btn-primary">Go Back</a>';
+            detailsContainer.innerHTML = '<h2>Item not found</h2><p class="mb-20">The food item might have been deleted or expired.</p><a href="browse-food.html" class="btn btn-primary">Browse available food</a>';
         }
-    }
 }
 
 function createFoodCard(item) {
@@ -641,7 +800,7 @@ function createFoodCard(item) {
                     <i class="fas fa-map-marker-alt"></i> ${item.location}
                 </div>
                 <div class="card-info" style="color: var(--danger);">
-                    <i class="fas fa-clock"></i> ${item.timeLeft} left
+                    <i class="fas fa-clock"></i> ${item.timeLeft && item.timeLeft.includes('left') ? item.timeLeft : item.timeLeft + ' left'}
                 </div>
                 ${paymentBadges ? `<div class="payment-badge">${paymentBadges}</div>` : ''}
                 <div class="d-flex justify-between align-center mt-20">
@@ -660,12 +819,53 @@ function createFoodCard(item) {
     `;
 }
 
-function initCategoryPage(type) {
+async function initCategoryPage(type) {
     const container = document.getElementById('category-page-grid');
-    if (container && typeof foodItems !== 'undefined') {
-        const filtered = foodItems.filter(item => item.type.toLowerCase() === type.toLowerCase());
-        renderGrid(container, filtered);
+    if (!container) return;
+
+    container.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 40px;"><i class="fas fa-spinner fa-spin fa-2x text-primary"></i><p>Loading items...</p></div>';
+
+    if (window.supabaseClient) {
+        try {
+            const { data: dbItems, error } = await window.supabaseClient
+                .from('food_items')
+                .select('*, profiles(name)')
+                .eq('type', type)
+                .eq('status', 'available')
+                .order('created_at', { ascending: false });
+
+            if (!error && dbItems && dbItems.length > 0) {
+                // Assuming profileMap and merchant_name might be available in a broader context or future data structure
+                // For now, we'll use the existing profiles.name if available, and fallback to 'Unknown Provider'
+                // If merchant_name or profileMap were to be introduced, this line would need adjustment.
+                const formattedItems = dbItems.map(item => ({
+                    id: item.id,
+                    title: item.title,
+                    type: item.type,
+                    price: item.price,
+                    originalPrice: item.original_price,
+                    location: item.location,
+                    timeLeft: item.time_left,
+                    image: item.image,
+                    donor: item.merchant_name || (item.profiles ? item.profiles.name : undefined) || 'Unknown Provider', // Applied the requested fallback logic
+                    promoted: item.promoted
+                }));
+                renderGrid(container, formattedItems);
+                return;
+            }
+        } catch (e) {
+            console.error('Error fetching category items:', e);
+        }
     }
+
+    // Fallback if DB fails or is empty
+    container.innerHTML = `
+        <div style="grid-column: 1 / -1; text-align: center; padding: 40px 20px; color: var(--text-gray);">
+            <i class="fas fa-box-open" style="font-size: 3rem; opacity: 0.2; margin-bottom: 15px;"></i>
+            <h3>No items available yet</h3>
+            <p>Check back later for new ${type} offers.</p>
+        </div>
+    `;
 }
 
 function initCategoryPages() {
