@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const errorEl = document.getElementById(elementId);
         if(errorEl) {
             errorEl.textContent = message;
+            errorEl.style.color = 'var(--danger, #e74c3c)';
             errorEl.style.display = 'block';
         }
     }
@@ -13,6 +14,36 @@ document.addEventListener('DOMContentLoaded', function() {
         const errorEl = document.getElementById(elementId);
         if(errorEl) {
             errorEl.style.display = 'none';
+        }
+    }
+
+    function setFieldState(input, isValid, successMsg, errorId, errorMsg) {
+        if (!input) return;
+        if (isValid) {
+            input.style.borderColor = 'var(--success, #2ecc71)';
+            input.style.boxShadow = '0 0 0 3px rgba(46,204,113,0.1)';
+            hideError(errorId);
+            if (successMsg) showSuccess(errorId, successMsg);
+        } else {
+            input.style.borderColor = 'var(--danger, #e74c3c)';
+            input.style.boxShadow = '0 0 0 3px rgba(231,76,60,0.1)';
+            showError(errorId, errorMsg);
+        }
+    }
+
+    function clearFieldState(input, errorId) {
+        if (!input) return;
+        input.style.borderColor = '';
+        input.style.boxShadow = '';
+        hideError(errorId);
+    }
+
+    function showSuccess(errorId, message) {
+        const el = document.getElementById(errorId);
+        if (el) {
+            el.textContent = message;
+            el.style.color = 'var(--success, #2ecc71)';
+            el.style.display = 'block';
         }
     }
 
@@ -92,6 +123,10 @@ document.addEventListener('DOMContentLoaded', function() {
             card.addEventListener('click', function() {
                 planCards.forEach(c => c.classList.remove('active'));
                 this.classList.add('active');
+                // FIX: also check the hidden radio input so input.checked works on submit
+                const radio = this.querySelector('input[type="radio"]');
+                if (radio) radio.checked = true;
+                hideError('planError');
             });
         });
 
@@ -142,261 +177,298 @@ document.addEventListener('DOMContentLoaded', function() {
     togglePlanVisibility();
 
     // ================================================================
-    //    REGISTER FORM — Supabase Auth
+    //   REGISTER — Live Validation
     // ================================================================
     const registerForm = document.getElementById('registerForm');
     if (registerForm) {
+
+        const nameInput            = document.getElementById('name');
+        const emailInput           = document.getElementById('email');
+        const passwordInput        = document.getElementById('password');
+        const confirmPasswordInput = document.getElementById('confirm-password');
+        const termsInput           = document.getElementById('terms');
+        const planInputs           = document.querySelectorAll('input[name="plan"]');
+        const emailPattern         = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        // --- Live: Name ---
+        if (nameInput) {
+            nameInput.addEventListener('input', () => {
+                const len = nameInput.value.trim().length;
+                if (len === 0) {
+                    clearFieldState(nameInput, 'nameError');
+                } else if (len < 2) {
+                    setFieldState(nameInput, false, null, 'nameError', `Name too short — ${2 - len} more character${2 - len > 1 ? 's' : ''} needed.`);
+                } else {
+                    setFieldState(nameInput, true, '✓ Looks good!', 'nameError', null);
+                }
+            });
+            nameInput.addEventListener('blur', () => {
+                if (nameInput.value.trim().length === 0)
+                    setFieldState(nameInput, false, null, 'nameError', 'Full name is required.');
+            });
+        }
+
+        // --- Live: Email ---
+        if (emailInput) {
+            emailInput.addEventListener('input', () => {
+                const val = emailInput.value.trim();
+                if (val === '') {
+                    clearFieldState(emailInput, 'emailError');
+                } else if (!emailPattern.test(val)) {
+                    setFieldState(emailInput, false, null, 'emailError', 'Please enter a valid email (e.g. name@email.com).');
+                } else {
+                    setFieldState(emailInput, true, '✓ Valid email address', 'emailError', null);
+                }
+            });
+            emailInput.addEventListener('blur', () => {
+                if (emailInput.value.trim() && !emailPattern.test(emailInput.value.trim()))
+                    setFieldState(emailInput, false, null, 'emailError', 'Invalid email format.');
+            });
+        }
+
+        // --- Live: Password ---
+        if (passwordInput) {
+            passwordInput.addEventListener('input', () => {
+                const len = passwordInput.value.length;
+                if (len === 0) {
+                    clearFieldState(passwordInput, 'passwordError');
+                } else if (len < 8) {
+                    setFieldState(passwordInput, false, null, 'passwordError', `Password too short — ${8 - len} more character${8 - len > 1 ? 's' : ''} needed.`);
+                } else {
+                    setFieldState(passwordInput, true, '✓ Password strength OK', 'passwordError', null);
+                }
+                if (confirmPasswordInput && confirmPasswordInput.value) {
+                    liveCheckConfirmPassword();
+                }
+            });
+        }
+
+        // --- Live: Confirm Password ---
+        function liveCheckConfirmPassword() {
+            if (!confirmPasswordInput || !passwordInput) return;
+            const val  = confirmPasswordInput.value;
+            const pass = passwordInput.value;
+            if (val === '') {
+                clearFieldState(confirmPasswordInput, 'confirmPasswordError');
+            } else if (val !== pass) {
+                setFieldState(confirmPasswordInput, false, null, 'confirmPasswordError', 'Passwords do not match.');
+            } else {
+                setFieldState(confirmPasswordInput, true, '✓ Passwords match!', 'confirmPasswordError', null);
+            }
+        }
+        if (confirmPasswordInput) {
+            confirmPasswordInput.addEventListener('input', liveCheckConfirmPassword);
+        }
+
+        // ---- Submit ----
         registerForm.addEventListener('submit', async function (e) {
             e.preventDefault();
-            
-            const nameInput = document.getElementById('name');
-            const emailInput = document.getElementById('email');
-            const passwordInput = document.getElementById('password');
-            const confirmPasswordInput = document.getElementById('confirm-password');
-            const termsInput = document.getElementById('terms');
-            const roleInput = document.getElementById('role');
-            const planInputs = document.querySelectorAll('input[name="plan"]');
-            const btn = this.querySelector('button[type="submit"]');
+
+            const btn             = this.querySelector('button[type="submit"]');
             const originalBtnText = btn ? btn.innerText : 'Create Account';
-            
-            // Clear previous errors
-            document.querySelectorAll('.error-msg').forEach(el => el.style.display = 'none');
-            document.querySelectorAll('.form-control').forEach(el => el.style.borderColor = '#e0e0e0');
+            const roleInput       = document.getElementById('role');
+
+            // Reset all error styles on submit
+            document.querySelectorAll('.error-msg').forEach(el => {
+                el.style.display = 'none';
+                el.style.color = 'var(--danger, #e74c3c)';
+            });
+            document.querySelectorAll('.form-control').forEach(el => {
+                el.style.borderColor = '';
+                el.style.boxShadow = '';
+            });
 
             let isValid = true;
-            
-            // Validate Name
-            if(nameInput.value.trim().length < 2) {
-                 showError('nameError', "Full name must be at least 2 characters.");
-                 nameInput.style.borderColor = 'var(--danger)';
-                 isValid = false;
+
+            if (!nameInput || nameInput.value.trim().length < 2) {
+                setFieldState(nameInput, false, null, 'nameError', 'Full name must be at least 2 characters.');
+                isValid = false;
+            }
+            if (!emailInput || !emailPattern.test(emailInput.value)) {
+                setFieldState(emailInput, false, null, 'emailError', 'Please enter a valid email address.');
+                isValid = false;
+            }
+            if (!passwordInput || passwordInput.value.length < 8) {
+                setFieldState(passwordInput, false, null, 'passwordError', 'Password must be at least 8 characters.');
+                isValid = false;
+            }
+            if (!confirmPasswordInput || confirmPasswordInput.value !== passwordInput.value) {
+                setFieldState(confirmPasswordInput, false, null, 'confirmPasswordError', 'Passwords do not match.');
+                isValid = false;
+            }
+            if (!termsInput || !termsInput.checked) {
+                showError('termsError', 'You must accept the Terms & Conditions.');
+                isValid = false;
             }
 
-            // Validate Email
-            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailPattern.test(emailInput.value)) {
-              showError('emailError', "Please enter a valid email address.");
-              emailInput.style.borderColor = 'var(--danger)';
-              isValid = false;
-            }
-
-            // Validate Password
-            if (passwordInput.value.length < 8) {
-              showError('passwordError', "Password must be at least 8 characters.");
-              passwordInput.style.borderColor = 'var(--danger)';
-              isValid = false;
-            }
-
-            // Validate Confirm Password
-            if (confirmPasswordInput.value !== passwordInput.value) {
-              showError('confirmPasswordError', "Passwords do not match.");
-              confirmPasswordInput.style.borderColor = 'var(--danger)';
-              isValid = false;
-            }
-
-            // Validate Terms
-            if (!termsInput.checked) {
-                 showError('termsError', "You must accept the terms.");
-                 isValid = false;
-            }
-
-            // Validate Plan for Sellers
             let selectedPlan = null;
             if (roleInput && sellerRoles.includes(roleInput.value)) {
-                planInputs.forEach(input => {
-                    if (input.checked) selectedPlan = input.value;
-                });
+                planInputs.forEach(input => { if (input.checked) selectedPlan = input.value; });
                 if (!selectedPlan) {
-                    showError('planError', "Please select a plan for your business.");
+                    const activeCard = document.querySelector('.plan-card.active');
+                    if (activeCard) {
+                        const r = activeCard.querySelector('input[type="radio"]');
+                        if (r) selectedPlan = r.value;
+                    }
+                }
+                if (!selectedPlan) {
+                    showError('planError', 'Please select a business plan to continue.');
                     isValid = false;
                 }
             }
 
-            if(isValid) {
-                const email = emailInput.value.toLowerCase().trim();
-                const name = nameInput.value.trim();
-                const role = roleInput ? roleInput.value : 'buyer';
-                const plan = selectedPlan || 'none';
+            if (!isValid) return;
 
-                // Show loading state
-                if(btn) {
-                    btn.innerText = 'Creating Account...';
-                    btn.disabled = true;
+            const email = emailInput.value.toLowerCase().trim();
+            const name  = nameInput.value.trim();
+            const role  = roleInput ? roleInput.value : 'buyer';
+            const plan  = selectedPlan || 'none';
+
+            if (btn) { btn.innerText = 'Creating account...'; btn.disabled = true; }
+
+            try {
+                const { data: authData, error: authError } = await window.supabaseClient.auth.signUp({
+                    email, password: passwordInput.value,
+                    options: { data: { name, role, plan } }
+                });
+                if (authError) throw authError;
+
+                if (authData.user) {
+                    const { error: profileError } = await window.supabaseClient
+                        .from('profiles')
+                        .insert({ id: authData.user.id, name, email, role, plan });
+                    if (profileError) console.error('Profile creation error:', profileError);
                 }
 
-                try {
-                    // 1. Sign up with Supabase Auth
-                    const { data: authData, error: authError } = await window.supabaseClient.auth.signUp({
-                        email: email,
-                        password: passwordInput.value,
-                        options: {
-                            data: {
-                                name: name,
-                                role: role,
-                                plan: plan
-                            }
-                        }
-                    });
+                if (successMsg) {
+                    successMsg.textContent = '🎉 Welcome to NavigiFood! Redirecting...';
+                    successMsg.style.display = 'block';
+                }
+                if (btn) btn.innerText = 'Account created! Redirecting...';
 
-                    if (authError) {
-                        throw authError;
+                setTimeout(() => {
+                    const providerRoles = ['donor', 'restaurant', 'hotel', 'bakery', 'market', 'catering', 'admin'];
+                    if (providerRoles.includes(role) || role === 'ngo') {
+                        window.location.href = 'dashboard.html';
+                    } else {
+                        window.location.href = 'browse-food.html';
                     }
+                }, 1500);
 
-                    // 2. Insert profile into profiles table
-                    if (authData.user) {
-                        const { error: profileError } = await window.supabaseClient
-                            .from('profiles')
-                            .insert({
-                                id: authData.user.id,
-                                name: name,
-                                email: email,
-                                role: role,
-                                plan: plan
-                            });
-
-                        if (profileError) {
-                            console.error('Profile creation error:', profileError);
-                            // Non-fatal — auth account was created, profile can be created later
-                        }
-                    }
-
-                    // 3. Success UI
-                    const successMsg = document.getElementById('successMsg');
-                    if(successMsg) {
-                        successMsg.textContent = "Welcome to NavigiFood!";
-                        successMsg.style.display = 'block';
-                    }
-                    if(btn) {
-                        btn.innerText = 'Account Created! Redirecting...';
-                    }
-
-                    // 4. Redirect
-                    setTimeout(() => {
-                        const partnerRoles = ['donor', 'ngo', 'restaurant', 'hotel', 'bakery', 'market', 'catering', 'admin'];
-                        if(partnerRoles.includes(role)) {
-                             window.location.href = 'dashboard.html';
-                        } else {
-                             window.location.href = 'index.html';
-                        }
-                    }, 1500);
-
-                } catch (error) {
-                    console.error('Registration error:', error);
-                    let message = 'An error occurred during registration. Please try again.';
-                    
-                    if (error.message) {
-                        if (error.message.includes('already registered')) {
-                            message = 'This email is already registered. Please login.';
-                        } else if (error.message.includes('password')) {
-                            message = 'Password must be at least 6 characters.';
-                        } else {
-                            message = error.message;
-                        }
-                    }
-
-                    showError('generalError', message);
-                    if(btn) {
-                        btn.innerText = originalBtnText;
-                        btn.disabled = false;
+            } catch (error) {
+                console.error('Registration error:', error);
+                let message = 'An error occurred during registration. Please try again.';
+                if (error.message) {
+                    if (error.message.includes('already registered') || error.message.includes('already been registered')) {
+                        message = 'This email is already registered. Please log in instead.';
+                    } else if (error.message.toLowerCase().includes('password')) {
+                        message = 'Password must be at least 6 characters.';
+                    } else {
+                        message = error.message;
                     }
                 }
+                showError('generalError', message);
+                if (btn) { btn.innerText = originalBtnText; btn.disabled = false; }
             }
         });
     }
 
     // ================================================================
-    //    LOGIN FORM — Supabase Auth
+    //   LOGIN — Live Validation
     // ================================================================
     const loginForm = document.getElementById('loginForm');
     if (loginForm) {
+        const emailInput    = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const emailPattern  = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        // --- Live: Email ---
+        if (emailInput) {
+            emailInput.addEventListener('input', () => {
+                const val = emailInput.value.trim();
+                if (val === '') {
+                    clearFieldState(emailInput, 'emailError');
+                } else if (!emailPattern.test(val)) {
+                    setFieldState(emailInput, false, null, 'emailError', 'Invalid email format.');
+                } else {
+                    setFieldState(emailInput, true, '✓ Valid email address', 'emailError', null);
+                }
+            });
+        }
+
+        // --- Live: Password ---
+        if (passwordInput) {
+            passwordInput.addEventListener('input', () => {
+                if (passwordInput.value.length > 0) {
+                    setFieldState(passwordInput, true, null, 'passwordError', null);
+                } else {
+                    clearFieldState(passwordInput, 'passwordError');
+                }
+            });
+        }
+
         loginForm.addEventListener('submit', async function (e) {
             e.preventDefault();
-            
-            const emailInput = document.getElementById('email');
-            const passwordInput = document.getElementById('password');
-            const btn = this.querySelector('button[type="submit"]');
+
+            const btn             = this.querySelector('button[type="submit"]');
             const originalBtnText = btn ? btn.innerText : 'Login';
-            const successMsg = document.getElementById('successMsg');
+            const successMsg      = document.getElementById('successMsg');
 
-            // Reset UI
-            document.querySelectorAll('.error-msg').forEach(el => el.style.display = 'none');
-            document.querySelectorAll('.form-control').forEach(el => el.style.borderColor = '#e0e0e0');
-            
+            document.querySelectorAll('.error-msg').forEach(el => {
+                el.style.display = 'none';
+                el.style.color = 'var(--danger, #e74c3c)';
+            });
+            document.querySelectorAll('.form-control').forEach(el => {
+                el.style.borderColor = '';
+                el.style.boxShadow = '';
+            });
+
             let isValid = true;
-    
-            if (!emailInput.value.trim()) {
-                showError('emailError', "Email is required.");
-                emailInput.style.borderColor = 'var(--danger)';
+            if (!emailInput || !emailInput.value.trim()) {
+                setFieldState(emailInput, false, null, 'emailError', 'Email address is required.');
                 isValid = false;
             }
-    
-            if (!passwordInput.value) {
-                showError('passwordError', "Password is required.");
-                passwordInput.style.borderColor = 'var(--danger)';
+            if (!passwordInput || !passwordInput.value) {
+                setFieldState(passwordInput, false, null, 'passwordError', 'Password is required.');
                 isValid = false;
             }
-    
-            if (isValid) {
-                const email = emailInput.value.toLowerCase().trim();
+            if (!isValid) return;
 
-                if(btn) {
-                    btn.innerText = 'Verifying...';
-                    btn.disabled = true;
+            const email = emailInput.value.toLowerCase().trim();
+            if (btn) { btn.innerText = 'Verifying...'; btn.disabled = true; }
+
+            try {
+                const { data, error } = await window.supabaseClient.auth.signInWithPassword({
+                    email, password: passwordInput.value
+                });
+                if (error) throw error;
+
+                const { data: profile } = await window.supabaseClient
+                    .from('profiles').select('*').eq('id', data.user.id).single();
+
+                if (successMsg) {
+                    successMsg.textContent = '✓ Login successful! Redirecting...';
+                    successMsg.style.display = 'block';
                 }
 
-                try {
-                    // Sign in with Supabase
-                    const { data, error } = await window.supabaseClient.auth.signInWithPassword({
-                        email: email,
-                        password: passwordInput.value
-                    });
+                setTimeout(() => {
+                    const role = profile ? profile.role : (data.user.user_metadata?.role || 'buyer');
+                    const partnerRoles = ['donor', 'ngo', 'restaurant', 'hotel', 'bakery', 'market', 'catering', 'admin'];
+                    window.location.href = partnerRoles.includes(role) ? 'dashboard.html' : 'browse-food.html';
+                }, 1000);
 
-                    if (error) {
-                        throw error;
-                    }
-
-                    // Fetch user profile from profiles table
-                    const { data: profile } = await window.supabaseClient
-                        .from('profiles')
-                        .select('*')
-                        .eq('id', data.user.id)
-                        .single();
-
-                    if(successMsg) {
-                        successMsg.textContent = "Login successful! Redirecting...";
-                        successMsg.style.display = 'block';
-                    }
-                    
-                    // Redirect based on role
-                    setTimeout(() => {
-                        const role = profile ? profile.role : (data.user.user_metadata?.role || 'buyer');
-                        const partnerRoles = ['donor', 'ngo', 'restaurant', 'hotel', 'bakery', 'market', 'catering', 'admin'];
-                        if(partnerRoles.includes(role)) {
-                            window.location.href = 'dashboard.html';
-                        } else {
-                            window.location.href = 'index.html';
-                        }
-                    }, 1000);
-
-                } catch (error) {
-                    console.error('Login error:', error);
-                    let message = 'Invalid email or password. Please try again.';
-                    
-                    // Custom messages in Arabic for better user experience
-                    if (error.message === 'Invalid login credentials') {
-                        message = 'البريد الإلكتروني أو كلمة المرور غير صحيحة. يرجى المحاولة مرة أخرى.';
-                    } else if (error.message.includes('Email not confirmed')) {
-                        message = 'يرجى تأكيد بريدك الإلكتروني من خلال الرابط المرسل إليك.';
-                    } else {
-                        message = error.message;
-                    }
-
-                    showError('generalError', message);
-                    if(btn) {
-                        btn.innerText = originalBtnText;
-                        btn.disabled = false;
-                    }
+            } catch (error) {
+                console.error('Login error:', error);
+                let message = 'An error occurred. Please try again.';
+                if (error.message === 'Invalid login credentials') {
+                    message = 'Incorrect email or password. Please try again.';
+                } else if (error.message.includes('Email not confirmed')) {
+                    message = 'Please confirm your email first. Check your inbox.';
+                } else {
+                    message = error.message;
                 }
+                showError('generalError', message);
+                if (btn) { btn.innerText = originalBtnText; btn.disabled = false; }
             }
         });
     }

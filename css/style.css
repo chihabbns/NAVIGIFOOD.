@@ -1242,6 +1242,13 @@ p {
     transform: translateY(-50%);
     color: var(--text-gray);
     transition: var(--transition);
+    pointer-events: none;
+  }
+
+  /* Allow the toggle icon to be clicked inside input groups */
+  .input-group > i.toggle-password {
+    pointer-events: auto;
+    cursor: pointer;
   }
 
   .input-group input:focus + i {
@@ -1852,7 +1859,25 @@ p {
   top: 50%;
   transform: translateY(-50%);
   color: var(--text-gray);
-  pointer-events: none;
+  pointer-events: none; /* decorative icons — not clickable by default */
+}
+
+/* Exception: the eye toggle icon MUST be clickable */
+.input-group > i.toggle-password {
+  pointer-events: auto;
+  cursor: pointer;
+  padding: 4px;          /* bigger click target */
+  border-radius: 4px;
+  transition: color 0.2s ease, background 0.2s ease;
+}
+
+.input-group > i.toggle-password:hover {
+  color: var(--primary);
+  background: rgba(0,0,0,0.05);
+}
+
+[data-theme="dark"] .input-group > i.toggle-password:hover {
+  background: rgba(255,255,255,0.08);
 }
 
 

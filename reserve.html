@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark">
     <script>/* Anti-FOWT */(function(){var t=localStorage.getItem('theme');if(!t){t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}document.documentElement.setAttribute('data-theme',t);})();</script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="أتمم حجزك وستم خدمة استلام الطلبات من المطاعم والفنادق المشاركة في NavigiFood.">
+    <meta name="description" content="Complete your reservation and pick up surplus food from restaurants and hotels participating in NavigiFood.">
     <title>Reserve Order - NavigiFood</title>
     <link rel="stylesheet" href="css/style.css" />
     <link
@@ -232,18 +232,33 @@
 
             const { data: { session } } = await window.supabaseClient.auth.getSession();
             if (!session) {
-                alert('يرجى تسجيل الدخول كـ \"باحث عن طعام\" لإتمام الحجز.');
+                alert('Please log in to complete your reservation.');
                 window.location.href = 'login.html';
                 return;
             }
 
-            const buyerName = document.getElementById('name').value;
-            const buyerPhone = document.getElementById('phone').value;
-            const pickupTime = document.getElementById('pickup-time').value;
+            // Block providers (sellers) from reserving
+            try {
+                const { data: myProfile } = await window.supabaseClient
+                    .from('profiles')
+                    .select('role')
+                    .eq('id', session.user.id)
+                    .single();
+                const myRole = myProfile ? myProfile.role : (session.user.user_metadata?.role || 'buyer');
+                const providerRoles = ['donor', 'restaurant', 'hotel', 'bakery', 'market', 'catering'];
+                if (providerRoles.includes(myRole)) {
+                    alert('Sorry, provider accounts cannot make reservations. Please log in as a "Food Seeker" or "Buyer".');
+                    return;
+                }
+            } catch(e) { /* profile fetch failed — allow to continue */ }
+
+            const buyerName  = document.getElementById('name').value.trim();
+            const buyerPhone = document.getElementById('phone').value.trim();
+            const pickupTime = document.getElementById('pickup-time').value || '00:00';
             const btn = e.target.querySelector('button[type="submit"]');
 
             if (!item.donor_id) {
-                alert('هذا العرض تجريبي ولا يمكن حجزه فعلياً.');
+                alert('This is a demo listing and cannot be reserved.');
                 return;
             }
 
@@ -251,53 +266,63 @@
             const pickupCode = Math.floor(1000 + Math.random() * 9000).toString();
 
             btn.disabled = true;
-            btn.innerHTML = '<i class=\"fas fa-spinner fa-spin\"></i> جاري الحجز...';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Reserving...';
 
             try {
                 // 1. Fetch current quantity to ensure availability
                 const { data: currentItem, error: fetchError } = await window.supabaseClient
                     .from('food_items')
-                    .select('quantity')
+                    .select('quantity, status')
                     .eq('id', item.id)
                     .single();
                 
-                if (fetchError || !currentItem || currentItem.quantity <= 0) {
-                    alert('عذراً، لم تكتمل العملية لأن هذا العرض نفدت كميته للتو.');
+                if (fetchError) {
+                    throw new Error('Could not verify availability: ' + fetchError.message);
+                }
+
+                // FIX: null quantity means unlimited — treat as available (qty=1)
+                // In JS: null <= 0 evaluates to TRUE (this was the main bug!), so we must check explicitly
+                const availableQty = currentItem ? (currentItem.quantity ?? 1) : 0;
+
+                if (availableQty <= 0 || currentItem?.status === 'sold out') {
+                    alert('Sorry, this offer just sold out. Try another one!');
                     window.location.href = 'browse-food.html';
                     return;
                 }
 
                 // 2. Insert the actual order
-                const { error } = await window.supabaseClient
+                const { error: orderError } = await window.supabaseClient
                     .from('orders')
                     .insert([{
-                        food_id: item.id,
-                        buyer_id: session.user.id,
-                        donor_id: item.donor_id,
-                        quantity: 1,
-                        buyer_name: buyerName,
-                        buyer_phone: buyerPhone,
-                        pickup_time: pickupTime,
-                        status: 'Pending',
-                        pickup_code: pickupCode
+                        food_id:      item.id,
+                        buyer_id:     session.user.id,
+                        donor_id:     item.donor_id,
+                        quantity:     1,
+                        buyer_name:   buyerName,
+                        buyer_phone:  buyerPhone,
+                        pickup_time:  pickupTime,
+                        status:       'Pending',
+                        pickup_code:  pickupCode
                     }]);
 
-                if (error) throw error;
+                if (orderError) throw new Error('Order creation error: ' + orderError.message);
 
-                // 3. Update Inventory (Decrement Quantity)
-                const newQuantity = currentItem.quantity - 1;
-                const newStatus = newQuantity > 0 ? 'available' : 'sold out';
-                
-                await window.supabaseClient
-                    .from('food_items')
-                    .update({ quantity: newQuantity, status: newStatus })
-                    .eq('id', item.id);
+                // 3. Update Inventory (Decrement Quantity) — only if quantity is tracked
+                if (currentItem.quantity !== null && currentItem.quantity !== undefined) {
+                    const newQuantity = availableQty - 1;
+                    const newStatus   = newQuantity > 0 ? 'available' : 'sold out';
+                    await window.supabaseClient
+                        .from('food_items')
+                        .update({ quantity: newQuantity, status: newStatus })
+                        .eq('id', item.id);
+                }
 
-                alert(`تم تأكيد حجزك بنجاح! 🎉\nكود الاستلام الخاص بك هو: ${pickupCode}\nسيصل إشعار لصاحب المطعم فوراً لتبليغه.`);
+                alert(`Your reservation is confirmed! 🎉\nYour pickup code is: ${pickupCode}\nYou can find your order details in the dashboard.`);
                 window.location.href = 'dashboard.html';
             } catch (err) {
                 console.error('Reservation Error:', err);
-                alert('حدث خطأ أثناء الحجز، يرجى المحاولة لاحقاً.');
+                // Show the REAL error message to help diagnose issues
+                alert('An error occurred during reservation:\n' + (err.message || 'Unknown error') + '\n\nCheck the browser console (F12) for more details.');
                 btn.disabled = false;
                 btn.innerHTML = 'Confirm Reservation';
             }

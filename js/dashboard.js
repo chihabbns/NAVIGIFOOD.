@@ -351,8 +351,8 @@ async function renderOrders() {
             </div>
             ${order.status === 'Pending' ? `
             <div class="d-flex gap-10">
-                <button onclick="updateOrderStatus(${order.id}, 'Confirmed')" class="btn btn-primary btn-small">Accept</button>
-                <button onclick="updateOrderStatus(${order.id}, 'Rejected')" class="btn btn-outline btn-small text-danger" style="border-color: var(--danger); color: var(--danger);">Reject</button>
+                <button onclick="updateOrderStatus('${order.id}', 'Confirmed', '${order.food_id}')" class="btn btn-primary btn-small">Accept</button>
+                <button onclick="updateOrderStatus('${order.id}', 'Rejected', '${order.food_id}')" class="btn btn-outline btn-small text-danger" style="border-color: var(--danger); color: var(--danger);">Reject</button>
             </div>` : ''}
             ${order.status === 'Confirmed' ? `
             <div style="background: var(--bg-light); padding: 10px; border-radius: 4px; border-left: 4px solid var(--success);">
@@ -415,26 +415,45 @@ async function renderRequests() {
 
     const { data: dbRequests, error } = await window.supabaseClient
         .from('orders')
-        .select(`
-            *,
-            food_items(title, donor_id),
-            profiles!orders_donor_id_fkey(name)
-        `)
+        .select('*, food_items(title, donor_id)')
         .eq('buyer_id', session.user.id)
         .order('created_at', { ascending: false });
 
-    if (error || !dbRequests || dbRequests.length === 0) {
-        const msg = '<p class="text-gray">No requests found.</p>';
+    if (error) {
+        console.error('renderRequests error:', error);
+        const msg = `<p class="text-danger">خطأ في جلب الطلبات: ${error.message}</p>`;
         if(overviewContainer) overviewContainer.innerHTML = msg;
         if(fullContainer) fullContainer.innerHTML = msg;
         return;
     }
+
+    if (!dbRequests || dbRequests.length === 0) {
+        const msg = '<p class="text-gray">لا توجد طلبات بعد.</p>';
+        if(overviewContainer) overviewContainer.innerHTML = msg;
+        if(fullContainer) fullContainer.innerHTML = msg;
+        return;
+    }
+
+    // Fetch donor names separately for all unique donor_ids
+    const donorIds = [...new Set(dbRequests.map(r => r.donor_id).filter(Boolean))];
+    let donorMap = {};
+    if (donorIds.length > 0) {
+        const { data: donorProfiles } = await window.supabaseClient
+            .from('profiles')
+            .select('id, name')
+            .in('id', donorIds);
+        if (donorProfiles) {
+            donorProfiles.forEach(p => { donorMap[p.id] = p.name; });
+        }
+    }
     
-    const html = dbRequests.map(req => `
+    const html = dbRequests.map(req => {
+        const donorName = donorMap[req.donor_id] || 'Unknown Store';
+        return `
         <div class="card card-body mb-15 d-flex justify-between align-center sticky-card">
             <div>
                 <h4 class="mb-5">${req.food_items ? req.food_items.title : 'Deleted Item'}</h4>
-                <p class="text-sm text-gray"><i class="fas fa-store"></i> ${req.profiles ? req.profiles.name : 'Unknown Store'}</p>
+                <p class="text-sm text-gray"><i class="fas fa-store"></i> ${donorName}</p>
                 <p class="text-xs text-gray mt-5">${new Date(req.created_at).toLocaleDateString()}</p>
             </div>
             <div class="text-right">
@@ -445,7 +464,8 @@ async function renderRequests() {
                 </div>
             </div>
         </div>
-    `).join('');
+        `;
+    }).join('');
 
     if(overviewContainer) overviewContainer.innerHTML = html;
     if(fullContainer) fullContainer.innerHTML = html;
@@ -462,23 +482,42 @@ function getStatusColor(status) {
 
 // --- Actions ---
 
-async function updateOrderStatus(id, status) {
+async function updateOrderStatus(id, status, foodId) {
     if (!window.supabaseClient) return;
 
     try {
+        // 1. Update order status
         const { error } = await window.supabaseClient
             .from('orders')
             .update({ status: status })
             .eq('id', id);
 
         if (error) throw error;
+
+        // 2. If order is Rejected, restore the inventory quantity
+        if (status === 'Rejected' && foodId) {
+            const { data: currentItem } = await window.supabaseClient
+                .from('food_items')
+                .select('quantity')
+                .eq('id', foodId)
+                .single();
+
+            if (currentItem !== null && currentItem !== undefined) {
+                const newQty = (currentItem.quantity || 0) + 1;
+                await window.supabaseClient
+                    .from('food_items')
+                    .update({ quantity: newQty, status: 'available' })
+                    .eq('id', foodId);
+            }
+        }
         
-        alert(`Order #${id} status: ${status}. ✅`);
+        const statusAr = status === 'Confirmed' ? 'مقبول ✅' : 'مرفوض ❌';
+        alert(`تم تحديث حالة الطلب: ${statusAr}`);
         renderOrders(); // Refresh donor view
         updateImpactAnalytics(); // Update stats
     } catch (err) {
         console.error('Update Status Error:', err);
-        alert('Failed to update order status.');
+        alert('حدث خطأ أثناء تحديث الطلب.');
     }
 }
 

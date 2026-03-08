@@ -247,21 +247,33 @@ async function checkAuth() {
     const { data: { session } } = await window.supabaseClient.auth.getSession();
     const navLinks = document.getElementById('nav-links');
     
-    if (session && navLinks) {
-        // Target the last list item (usually the CTA button)
-        const lastLi = navLinks.lastElementChild;
-        
-        if (lastLi) {
-            lastLi.innerHTML = `
-                <div style="display: flex; gap: 10px; align-items: center;">
-                    <a href="dashboard.html" class="btn btn-primary btn-small" title="Manage your orders and listings">
-                        <i class="fas fa-user"></i> My Account
-                    </a>
-                    <a href="#" class="btn btn-outline btn-small" onclick="logout(event)" title="Sign out">
-                        <i class="fas fa-sign-out-alt"></i> Logout
-                    </a>
-                </div>
-            `;
+    if (session) {
+        // Cache the user role globally so createFoodCard can use it synchronously
+        try {
+            const { data: profileData } = await window.supabaseClient
+                .from('profiles')
+                .select('role')
+                .eq('id', session.user.id)
+                .single();
+            window._currentUserRole = profileData ? profileData.role : (session.user.user_metadata?.role || 'buyer');
+        } catch(e) {
+            window._currentUserRole = session.user.user_metadata?.role || 'buyer';
+        }
+
+        if (navLinks) {
+            const lastLi = navLinks.lastElementChild;
+            if (lastLi) {
+                lastLi.innerHTML = `
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <a href="dashboard.html" class="btn btn-primary btn-small" title="Manage your orders and listings">
+                            <i class="fas fa-user"></i> My Account
+                        </a>
+                        <a href="#" class="btn btn-outline btn-small" onclick="logout(event)" title="Sign out">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </a>
+                    </div>
+                `;
+            }
         }
     }
 }
@@ -741,10 +753,23 @@ async function initDetailsPage() {
                 </div>
             `;
 
-            // Inject buttons after HTML is set
-            const session = JSON.parse(localStorage.getItem('navigi_session'));
+            // Inject buttons after HTML is set — check Supabase session for role
             const btnContainer = document.getElementById('action-buttons');
-            const isProvider = session && session.user && ['donor', 'restaurant', 'hotel', 'bakery', 'market', 'catering'].includes(session.user.role);
+            let isProvider = false;
+            if (window.supabaseClient) {
+                try {
+                    const { data: { session: sbSession } } = await window.supabaseClient.auth.getSession();
+                    if (sbSession) {
+                        const { data: profileData } = await window.supabaseClient
+                            .from('profiles')
+                            .select('role')
+                            .eq('id', sbSession.user.id)
+                            .single();
+                        const role = profileData ? profileData.role : (sbSession.user.user_metadata?.role || 'buyer');
+                        isProvider = ['donor', 'restaurant', 'hotel', 'bakery', 'market', 'catering'].includes(role);
+                    }
+                } catch(e) { console.error('Role check error:', e); }
+            }
             
             if (isProvider) {
                 btnContainer.innerHTML = `
@@ -775,9 +800,11 @@ function createFoodCard(item) {
         promotedTag = '<div class="promoted-tag"><i class="fas fa-star"></i> Featured</div>';
     }
 
-    const session = JSON.parse(localStorage.getItem('navigi_session'));
-    const isProvider = session && session.user && ['donor', 'restaurant', 'hotel', 'bakery', 'market', 'catering'].includes(session.user.role);
+    // Read cached role from window (set by checkAuth) — fallback to showing reserve button
+    const cachedRole = window._currentUserRole || null;
+    const isProvider = cachedRole && ['donor', 'restaurant', 'hotel', 'bakery', 'market', 'catering'].includes(cachedRole);
     const reserveButtonHtml = isProvider ? '' : `<a href="reserve.html?id=${item.id}" class="btn btn-primary btn-small" title="Reserve Now"><i class="fas fa-shopping-basket"></i></a>`;
+    const soldOutBadge = item.quantity === 0 ? `<span style="position:absolute;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;border-radius:var(--radius-md) var(--radius-md) 0 0;"><span style="background:#e74c3c;color:#fff;padding:6px 14px;border-radius:20px;font-weight:700;font-size:0.9rem;">Sold Out</span></span>` : '';
 
     return `
         <article class="card ${isPromoted}">
@@ -789,6 +816,7 @@ function createFoodCard(item) {
                 <span style="position: absolute; top: 10px; left: 10px; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold;" class="${badgeClass}">
                     ${item.type}
                 </span>
+                ${soldOutBadge}
             </div>
             <div class="card-body">
                 ${promotedTag}
