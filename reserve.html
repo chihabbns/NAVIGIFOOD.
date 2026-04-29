@@ -317,7 +317,13 @@
                         .eq('id', item.id);
                 }
 
-                alert(`Your reservation is confirmed! 🎉\nYour pickup code is: ${pickupCode}\nYou can find your order details in the dashboard.`);
+                // 4. Reward Points System
+                const pointsEarned = Math.floor(item.price);
+                if (typeof window.addPoints === 'function') {
+                    await window.addPoints(pointsEarned);
+                }
+
+                alert(`Your reservation is confirmed! 🎉\nYou earned +${pointsEarned} points!\nYour pickup code is: ${pickupCode}\nYou can find your order details in the dashboard.`);
                 window.location.href = 'dashboard.html';
             } catch (err) {
                 console.error('Reservation Error:', err);

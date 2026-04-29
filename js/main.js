@@ -265,6 +265,7 @@ async function checkAuth() {
             if (lastLi) {
                 lastLi.innerHTML = `
                     <div style="display: flex; gap: 10px; align-items: center;">
+                        <span class="points-display" style="font-weight: bold; color: #f39c12; background: rgba(243, 156, 18, 0.1); padding: 5px 10px; border-radius: 20px;">⭐ 0 pts</span>
                         <a href="dashboard.html" class="btn btn-primary btn-small" title="Manage your orders and listings">
                             <i class="fas fa-user"></i> My Account
                         </a>
@@ -274,6 +275,10 @@ async function checkAuth() {
                     </div>
                 `;
             }
+        }
+        
+        if (typeof window.updatePointsDisplay === 'function') {
+            window.updatePointsDisplay();
         }
     }
 }
@@ -903,3 +908,143 @@ function initCategoryPages() {
     }
 }
 
+// ==========================================
+// REWARD POINTS SYSTEM (SUPABASE)
+// ==========================================
+
+async function fetchUserPoints() {
+    if (!window.supabaseClient) return { points: 0, level: 'Bronze' };
+    const { data: { session } } = await window.supabaseClient.auth.getSession();
+    if (!session) return { points: 0, level: 'Bronze' };
+
+    try {
+        const { data, error } = await window.supabaseClient
+            .from('profiles')
+            .select('points')
+            .eq('id', session.user.id)
+            .single();
+        
+        if (error || !data) return { points: 0, level: 'Bronze' };
+        
+        let level = 'Bronze';
+        if (data.points >= 3000) level = 'Gold';
+        else if (data.points >= 1000) level = 'Silver';
+        
+        return { points: data.points, level: level };
+    } catch(e) {
+        return { points: 0, level: 'Bronze' };
+    }
+}
+
+window.addPoints = async function(amount) {
+    if (!window.supabaseClient) return;
+    const { data: { session } } = await window.supabaseClient.auth.getSession();
+    if (!session) return;
+
+    try {
+        const { data: profile } = await window.supabaseClient
+            .from('profiles')
+            .select('points')
+            .eq('id', session.user.id)
+            .single();
+            
+        const currentPoints = profile ? (profile.points || 0) : 0;
+        const newPoints = currentPoints + Math.floor(amount);
+        
+        await window.supabaseClient
+            .from('profiles')
+            .update({ points: newPoints })
+            .eq('id', session.user.id);
+            
+        await window.updatePointsDisplay();
+    } catch(e) {
+        console.error("Error adding points:", e);
+    }
+};
+
+window.redeemPoints = async function() {
+    if (!window.supabaseClient) return;
+    const { data: { session } } = await window.supabaseClient.auth.getSession();
+    if (!session) {
+        alert("Please log in first.");
+        return;
+    }
+
+    try {
+        const { data: profile } = await window.supabaseClient
+            .from('profiles')
+            .select('points')
+            .eq('id', session.user.id)
+            .single();
+            
+        const currentPoints = profile ? (profile.points || 0) : 0;
+        
+        if (currentPoints >= 500) {
+            const newPoints = currentPoints - 500;
+            const { error } = await window.supabaseClient
+                .from('profiles')
+                .update({ points: newPoints })
+                .eq('id', session.user.id);
+                
+            if (!error) {
+                alert("Success! You've redeemed 500 points for a discount on your next order.");
+                await window.updatePointsDisplay();
+            } else {
+                alert("Failed to redeem points. Please try again.");
+            }
+        } else {
+            alert("You need at least 500 points to redeem a discount.");
+        }
+    } catch(e) {
+        console.error("Error redeeming points:", e);
+    }
+};
+
+window.updatePointsDisplay = async function() {
+    const displays = document.querySelectorAll('.points-display');
+    const onDashboard = document.getElementById('reward-points');
+    
+    // Only fetch if there is UI to update
+    if (displays.length === 0 && !onDashboard) return;
+    
+    const data = await fetchUserPoints();
+    
+    if (displays.length > 0) {
+        displays.forEach(el => {
+            el.innerHTML = `⭐ ${data.points} pts`;
+        });
+    }
+    
+    if (typeof window.renderDashboardRewards === 'function') {
+        window.renderDashboardRewards(data);
+    }
+};
+
+window.renderDashboardRewards = function(data) {
+    const pointsEl = document.getElementById('reward-points');
+    const levelEl = document.getElementById('reward-level');
+    const progressEl = document.getElementById('reward-progress');
+    const nextLevelEl = document.getElementById('reward-next-level');
+    
+    if (!pointsEl || !data) return;
+    
+    pointsEl.textContent = `${data.points} pts`;
+    levelEl.textContent = data.level;
+    
+    let nextLevel = 'Max Level';
+    let progress = 100;
+    
+    if (data.points < 1000) {
+        nextLevel = `Earn ${1000 - data.points} pts for Silver`;
+        progress = (data.points / 1000) * 100;
+    } else if (data.points < 3000) {
+        nextLevel = `Earn ${3000 - data.points} pts for Gold`;
+        progress = ((data.points - 1000) / 2000) * 100;
+    } else {
+        nextLevel = 'You have reached Gold level!';
+        progress = 100;
+    }
+    
+    progressEl.style.width = `${progress}%`;
+    nextLevelEl.textContent = nextLevel;
+};
