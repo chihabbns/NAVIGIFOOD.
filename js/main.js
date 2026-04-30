@@ -1011,7 +1011,11 @@ window.updatePointsDisplay = async function() {
     
     if (displays.length > 0) {
         displays.forEach(el => {
-            el.innerHTML = `⭐ ${data.points} pts`;
+            el.innerHTML = `<i class="fas fa-gem"></i> ${data.points} pts`;
+            if(!el.classList.contains('points-badge-premium')) {
+                el.classList.add('points-badge-premium');
+                el.style = "";
+            }
         });
     }
     
