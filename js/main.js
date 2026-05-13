@@ -1025,30 +1025,35 @@ window.updatePointsDisplay = async function() {
 };
 
 window.renderDashboardRewards = function(data) {
-    const pointsEl = document.getElementById('reward-points');
-    const levelEl = document.getElementById('reward-level');
+    const pointsEl   = document.getElementById('reward-points');
+    const levelEl    = document.getElementById('reward-level');
     const progressEl = document.getElementById('reward-progress');
     const nextLevelEl = document.getElementById('reward-next-level');
-    
-    if (!pointsEl || !data) return;
-    
+
+    // Guard: stop if essential elements or data are missing
+    if (!pointsEl || !levelEl || !progressEl || !nextLevelEl || !data) return;
+
     pointsEl.textContent = `${data.points} pts`;
-    levelEl.textContent = data.level;
-    
+    levelEl.textContent  = data.level;
+
     let nextLevel = 'Max Level';
-    let progress = 100;
-    
+    let progress  = 100;
+
     if (data.points < 1000) {
         nextLevel = `Earn ${1000 - data.points} pts for Silver`;
-        progress = (data.points / 1000) * 100;
+        progress  = (data.points / 1000) * 100;
     } else if (data.points < 3000) {
         nextLevel = `Earn ${3000 - data.points} pts for Gold`;
-        progress = ((data.points - 1000) / 2000) * 100;
+        progress  = ((data.points - 1000) / 2000) * 100;
     } else {
-        nextLevel = 'You have reached Gold level!';
-        progress = 100;
+        nextLevel = 'You have reached Gold level! 🥇';
+        progress  = 100;
     }
-    
-    progressEl.style.width = `${progress}%`;
-    nextLevelEl.textContent = nextLevel;
+
+    nextLevelEl.textContent   = nextLevel;
+    // Delay so CSS transition plays after element becomes visible
+    progressEl.style.width = '0%';
+    setTimeout(() => {
+        progressEl.style.width = `${Math.min(100, progress)}%`;
+    }, 100);
 };

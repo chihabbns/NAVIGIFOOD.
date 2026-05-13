@@ -82,6 +82,10 @@
   color-scheme: dark;
 }
 
+/* ── Dark mode: remove navbar shadow line ─────────────────── */
+
+
+
 * {
   margin: 0;
   padding: 0;
@@ -2180,8 +2184,8 @@ p {
 /* Navbar */
 [data-theme="dark"] .navbar {
   background: var(--bg-white);
-  border-bottom: 1px solid var(--border-color);
-  box-shadow: var(--shadow-md);
+  border-bottom: none !important;
+  box-shadow: none !important;
 }
 
 [data-theme="dark"] .nav-link {
@@ -2445,7 +2449,7 @@ p {
 /* Mobile nav dropdown */
 [data-theme="dark"] .nav-links {
   background: var(--bg-white);
-  border-top: 1px solid var(--border-color);
+  border-top: none !important;
 }
 
 /* Password strength bar */
@@ -2780,9 +2784,11 @@ p {
 }
 
 .vip-progress-fill {
+  height: 100%;
   background: linear-gradient(90deg, #f1c40f, #f39c12) !important;
   border-radius: 20px;
   box-shadow: 0 0 10px rgba(241, 196, 15, 0.5);
+  transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .btn-vip-redeem {
@@ -2887,4 +2893,16 @@ p {
   align-items: center;
   gap: 5px;
   vertical-align: middle;
+}
+
+/* ── Global Dark Mode Line Removal (Final fallback) ── */
+[data-theme="dark"] .navbar, 
+[data-theme="dark"] .nav-links, 
+[data-theme="dark"] .nav-container,
+[data-theme="dark"] body, 
+[data-theme="dark"] html {
+    border-top: none !important;
+    border-bottom: none !important;
+    box-shadow: none !important;
+    outline: none !important;
 }
