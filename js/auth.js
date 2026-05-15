@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function() {
+﻿document.addEventListener('DOMContentLoaded', function() {
     
     // --- Utils ---
     function showError(elementId, message) {
@@ -341,7 +341,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 if (successMsg) {
-                    successMsg.textContent = '🎉 Welcome to NavigiFood! Redirecting...';
+                    successMsg.textContent = '🎉 Welcome to NAVIGUIFOOD! Redirecting...';
                     successMsg.style.display = 'block';
                 }
                 if (btn) btn.innerText = 'Account created! Redirecting...';

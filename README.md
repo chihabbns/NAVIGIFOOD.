@@ -1,4 +1,4 @@
-# 🍽️ NavigiFood — Project Documentation
+﻿# 🍽️ NAVIGUIFOOD — Project Documentation
 
 > **A web platform that connects food providers (restaurants, hotels, bakeries, markets) with buyers to reduce food waste and sell surplus food at reduced prices.**
 
@@ -24,11 +24,11 @@
 
 ## 1. Project Overview
 
-**NavigiFood** is a web application built to fight food waste in Algeria.
+**NAVIGUIFOOD** is a web application built to fight food waste in Algeria.
 
 **The Problem:** Restaurants, hotels, bakeries, and markets throw away large amounts of food every day because it was not sold in time.
 
-**The Solution:** NavigiFood creates a marketplace where:
+**The Solution:** NAVIGUIFOOD creates a marketplace where:
 - **Providers** (restaurants, hotels, etc.) can list their surplus food at a discounted price.
 - **Buyers** (individuals, NGOs) can browse, reserve, and pick up that food before it expires.
 
@@ -67,7 +67,7 @@ This reduces food waste, saves money for buyers, and generates extra income for 
 ## 4. Project Structure
 
 ```
-NavigiFood/
+NAVIGUIFOOD/
 │
 ├── index.html              ← Home page
 ├── about.html              ← About the project
@@ -475,7 +475,7 @@ This prevents the page from flashing white before switching to dark mode.
 ## 13. Common Interview Questions & Answers
 
 **Q: What is the main problem your project solves?**
-> A: Food waste. Every day, restaurants and hotels throw away unsold food. NavigiFood connects these providers with buyers who can purchase this food at 40–70% discount before it expires.
+> A: Food waste. Every day, restaurants and hotels throw away unsold food. NAVIGUIFOOD connects these providers with buyers who can purchase this food at 40–70% discount before it expires.
 
 **Q: Why did you choose Supabase?**
 > A: Supabase provides a ready-made backend with a real PostgreSQL database and authentication system. We can interact with it directly from JavaScript without needing to build a server with Node.js or PHP. It's free for small projects and perfect for a web project without a backend.
@@ -664,4 +664,4 @@ No functions — only data definitions:
 
 ---
 
-*© 2026 NavigiFood — Developed by Chihab Benslimane*
+*© 2026 NAVIGUIFOOD — Developed by Chihab Benslimane*

@@ -1,4 +1,4 @@
-// Main JavaScript File
+﻿// Main JavaScript File
 
 document.addEventListener('DOMContentLoaded', () => {
     initMobileMenu();
@@ -708,7 +708,7 @@ async function initDetailsPage() {
     if (item) {
         const discount = item.originalPrice > 0 ? Math.round(((item.originalPrice - item.price) / item.originalPrice) * 100) : 0;
         
-        document.title = `${item.title} - NavigiFood`;
+        document.title = `${item.title} - NAVIGUIFOOD`;
         
         let safeTimeLeft = item.timeLeft || '';
         if (safeTimeLeft && !safeTimeLeft.includes('left') && !safeTimeLeft.includes('ينتهي')) {
