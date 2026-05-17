@@ -1,9 +1,8 @@
-﻿// Main JavaScript File
 
 document.addEventListener('DOMContentLoaded', () => {
     initMobileMenu();
     initThemeToggle();   // Dark mode toggle
-    fetchGlobalSearchItems(); // Prefetch items for search bar
+    fetchGlobalSearchItems(); // Prefetch items for search bar من SUPA
     initHomePage();
     initBrowsePage();
     initDetailsPage();
@@ -42,7 +41,6 @@ function initThemeToggle() {
 
     if (!btn) return;
 
-    // Sync aria-pressed with current theme on load
     function syncBtn() {
         const isDark = html.getAttribute('data-theme') === 'dark';
         btn.setAttribute('aria-pressed', isDark ? 'true' : 'false');
@@ -53,16 +51,12 @@ function initThemeToggle() {
         const isDark = html.getAttribute('data-theme') === 'dark';
         const next   = isDark ? 'light' : 'dark';
 
-        // Apply theme to <html> element
         html.setAttribute('data-theme', next);
 
-        // Persist preference
         try { localStorage.setItem('theme', next); } catch(e) {}
 
-        // Update accessibility attribute
         btn.setAttribute('aria-pressed', next === 'dark' ? 'true' : 'false');
 
-        // Trigger 360deg spin animation
         btn.classList.remove('spinning');
         void btn.offsetWidth; // force reflow — restarts animation
         btn.classList.add('spinning');
@@ -71,7 +65,6 @@ function initThemeToggle() {
         }, { once: true });
     });
 
-    // iOS Safari: ensure Space key works on buttons inside nav
     btn.addEventListener('keydown', e => {
         if (e.key === ' ') { e.preventDefault(); btn.click(); }
     });
@@ -116,7 +109,6 @@ function initSearchSuggestions() {
             const searchTarget = window.globalSearchItems || [];
             if (searchTarget.length === 0) return;
 
-            // Logic: Group by category
             const results = {
                 dishes: searchTarget.filter(item => item.title.toLowerCase().includes(term))
                         .map(item => ({ text: item.title, icon: 'fas fa-utensils', meta: 'Dish' })),
@@ -126,7 +118,6 @@ function initSearchSuggestions() {
                         .map(item => ({ text: item.location, icon: 'fas fa-map-marker-alt', meta: 'Location' }))
             };
 
-            // Remove duplicates within groups
             results.dishes = Array.from(new Set(results.dishes.map(r => r.text))).map(text => results.dishes.find(r => r.text === text)).slice(0, 4);
             results.donors = Array.from(new Set(results.donors.map(r => r.text))).map(text => results.donors.find(r => r.text === text)).slice(0, 2);
             results.places = Array.from(new Set(results.places.map(r => r.text))).map(text => results.places.find(r => r.text === text)).slice(0, 2);
@@ -175,7 +166,6 @@ function showPopularSearches(container) {
     const searchTarget = window.globalSearchItems || [];
     if (searchTarget.length === 0) return;
     
-    // Popular = just some first items
     const popular = {
         dishes: searchTarget.slice(0, 3).map(item => ({ text: item.title, icon: 'fas fa-fire', meta: 'Trending' })),
         places: [...new Set(searchTarget.map(i => i.location))].slice(0, 2).map(loc => ({ text: loc, icon: 'fas fa-map-pin', meta: 'Nearby' }))
@@ -248,7 +238,6 @@ async function checkAuth() {
     const navLinks = document.getElementById('nav-links');
     
     if (session) {
-        // Cache the user role globally so createFoodCard can use it synchronously
         try {
             const { data: profileData } = await window.supabaseClient
                 .from('profiles')
@@ -314,7 +303,6 @@ async function initHomePage() {
     const categoryGrid = document.getElementById('category-grid');
     const featuredGrid = document.getElementById('featured-grid');
 
-    // Render Categories
     if (categoryGrid && typeof categories !== 'undefined') {
         categoryGrid.innerHTML = categories.map(cat => `
             <div class="category-card" onclick="window.location.href='${cat.link}'">
@@ -324,7 +312,6 @@ async function initHomePage() {
         `).join('');
     }
 
-    // Render Featured Items from Supabase
     if (featuredGrid && window.supabaseClient) {
         featuredGrid.innerHTML = '<p>Loading items...</p>';
         let dbItems = [];
@@ -397,7 +384,6 @@ async function initBrowsePage() {
 
     if (!browseGrid || !window.supabaseClient) return;
 
-    // Fetch items from database
     let dbItems = [];
     try {
         const { data, error } = await window.supabaseClient
@@ -436,19 +422,16 @@ async function initBrowsePage() {
     liveFoodItems = [...dbItems, ...localItems];
     window.globalSearchItems = liveFoodItems; // Export for global search
 
-    // Check for URL params (category link or search from homepage)
     const urlParams      = new URLSearchParams(window.location.search);
     const categoryParam  = urlParams.get('category');
     const searchParam    = urlParams.get('search');
 
-    // Pre-filter from URL: if a specific category is in URL, uncheck all others
     if (categoryParam) {
         catFilters.forEach(cb => {
             cb.checked = cb.value.toLowerCase() === categoryParam.toLowerCase();
         });
     }
 
-    // Live price slider label
     if (priceRange && priceLabel) {
         priceRange.addEventListener('input', () => {
             priceLabel.textContent = Number(priceRange.value).toLocaleString() + ' DA';
@@ -456,7 +439,6 @@ async function initBrowsePage() {
         });
     }
 
-    // Keyword filter
     if (keywordInput) {
         keywordInput.addEventListener('input', applyFilters);
         if (searchParam) {
@@ -464,18 +446,14 @@ async function initBrowsePage() {
         }
     }
 
-    // Location filter
     if (locationInput) {
         locationInput.addEventListener('input', applyFilters);
     }
 
-    // Category checkboxes
     catFilters.forEach(cb => cb.addEventListener('change', applyFilters));
 
-    // Sort
     if (sortSelect) sortSelect.addEventListener('change', applyFilters);
 
-    // Food Type Popup Logic
     if (foodTypeBtn && foodTypePopup) {
         foodTypeBtn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -525,7 +503,6 @@ async function initBrowsePage() {
         }
     }
 
-    // Reset
     if (resetBtn) {
         resetBtn.addEventListener('click', () => {
             catFilters.forEach(cb => cb.checked = true);
@@ -535,7 +512,6 @@ async function initBrowsePage() {
             if (locationInput) { locationInput.value = ''; }
             if (sortSelect)    { sortSelect.value = 'featured'; }
             
-            // clear food type filter
             ftCheckboxes.forEach(cb => cb.checked = false);
             activeFilters = [];
             if (foodTypeBtn) foodTypeBtn.classList.remove('active-filter');
@@ -544,11 +520,10 @@ async function initBrowsePage() {
         });
     }
 
-    // --- Core filter + sort function ---
+    // Apply search, category, and price filters to food items
     function applyFilters() {
         let items = [...liveFoodItems];
 
-        // 1 — Category filter
         const checkedCats = Array.from(catFilters)
             .filter(cb => cb.checked)
             .map(cb => cb.value.toLowerCase());
@@ -559,12 +534,10 @@ async function initBrowsePage() {
             items = []; // nothing checked = show nothing
         }
 
-        // 1.5 — Type of Food filter (uses item.foodType field set in data.js)
         if (activeFilters && activeFilters.length > 0) {
             items = items.filter(item => activeFilters.includes(item.foodType));
         }
 
-        // 2 — Keyword search (Title, Donor, or Location)
         if (keywordInput && keywordInput.value.trim()) {
             const term = keywordInput.value.trim().toLowerCase();
             items = items.filter(item => 
@@ -574,19 +547,16 @@ async function initBrowsePage() {
             );
         }
 
-        // 3 — Location filter
         if (locationInput && locationInput.value.trim()) {
             const term = locationInput.value.trim().toLowerCase();
             items = items.filter(item => item.location.toLowerCase().includes(term));
         }
 
-        // 3 — Price filter
         if (priceRange) {
             const maxPrice = Number(priceRange.value);
             items = items.filter(item => item.price <= maxPrice);
         }
 
-        // 4 — Sort
         const sortVal = sortSelect ? sortSelect.value : 'featured';
         switch (sortVal) {
             case 'price-asc':
@@ -597,18 +567,15 @@ async function initBrowsePage() {
                 break;
             case 'discount':
                 items.sort((a, b) => {
-                    // Exclude free (price=0) from discount ranking — they'd always win at 100%
                     const dA = a.price > 0 ? (a.originalPrice - a.price) / a.originalPrice : -1;
                     const dB = b.price > 0 ? (b.originalPrice - b.price) / b.originalPrice : -1;
                     return dB - dA;
                 });
                 break;
             case 'savings':
-                // Sort by absolute saving amount (originalPrice - price) in DA
                 items.sort((a, b) => (b.originalPrice - b.price) - (a.originalPrice - a.price));
                 break;
             case 'time':
-                // Convert timeLeft to minutes for accurate comparison
                 function toMinutes(timeLeft) {
                     const val = parseFloat(timeLeft);
                     if (isNaN(val)) return 99999;
@@ -622,21 +589,17 @@ async function initBrowsePage() {
             default: // 'featured' — promoted first, then by discount %
                 items.sort((a, b) => {
                     if (b.promoted !== a.promoted) return (b.promoted ? 1 : 0) - (a.promoted ? 1 : 0);
-                    // Secondary: higher discount first
                     const dA = a.price > 0 ? (a.originalPrice - a.price) / a.originalPrice : 0;
                     const dB = b.price > 0 ? (b.originalPrice - b.price) / b.originalPrice : 0;
                     return dB - dA;
                 });
         }
 
-        // Update count
         if (resultsCount) resultsCount.textContent = items.length;
 
-        // Render
         renderGrid(browseGrid, items);
     }
 
-    // Initial render
     applyFilters();
 }
 
@@ -661,7 +624,6 @@ async function initDetailsPage() {
 
     let item = null;
 
-    // Try to fetch from Supabase first
     if (window.supabaseClient) {
         try {
             const { data: dbData, error } = await window.supabaseClient
@@ -671,7 +633,6 @@ async function initDetailsPage() {
                 .single();
 
             if (!error && dbData) {
-                // Fetch donor name
                 let donorName = 'Unknown Provider';
                 const { data: profileData } = await window.supabaseClient
                     .from('profiles')
@@ -699,7 +660,6 @@ async function initDetailsPage() {
         }
     }
 
-    // Fall back to local items if not found in db
     if (!item && typeof foodItems !== 'undefined' && foodItems.length > 0) {
         const numericId = parseInt(idParam);
         item = foodItems.find(i => i.id === numericId || String(i.id) === idParam);
@@ -758,7 +718,6 @@ async function initDetailsPage() {
                 </div>
             `;
 
-            // Inject buttons after HTML is set — check Supabase session for role
             const btnContainer = document.getElementById('action-buttons');
             let isProvider = false;
             if (window.supabaseClient) {
@@ -798,14 +757,12 @@ function createFoodCard(item) {
     const isPromoted = item.promoted ? 'card-promoted' : '';
     
     let paymentBadges = '';
-    // Payment badges removed as per request
     
     let promotedTag = '';
     if (item.promoted) {
         promotedTag = '<div class="promoted-tag"><i class="fas fa-star"></i> Featured</div>';
     }
 
-    // Read cached role from window (set by checkAuth) — fallback to showing reserve button
     const cachedRole = window._currentUserRole || null;
     const isProvider = cachedRole && ['donor', 'restaurant', 'hotel', 'bakery', 'market', 'catering'].includes(cachedRole);
     const reserveButtonHtml = isProvider ? '' : `<a href="reserve.html?id=${item.id}" class="btn btn-primary btn-small" title="Reserve Now"><i class="fas fa-shopping-basket"></i></a>`;
@@ -868,9 +825,6 @@ async function initCategoryPage(type) {
                 .order('created_at', { ascending: false });
 
             if (!error && dbItems && dbItems.length > 0) {
-                // Assuming profileMap and merchant_name might be available in a broader context or future data structure
-                // For now, we'll use the existing profiles.name if available, and fallback to 'Unknown Provider'
-                // If merchant_name or profileMap were to be introduced, this line would need adjustment.
                 const formattedItems = dbItems.map(item => ({
                     id: item.id,
                     title: item.title,
@@ -891,7 +845,6 @@ async function initCategoryPage(type) {
         }
     }
 
-    // Fallback if DB fails or is empty
     container.innerHTML = `
         <div style="grid-column: 1 / -1; text-align: center; padding: 40px 20px; color: var(--text-gray);">
             <i class="fas fa-box-open" style="font-size: 3rem; opacity: 0.2; margin-bottom: 15px;"></i>
@@ -908,9 +861,6 @@ function initCategoryPages() {
     }
 }
 
-// ==========================================
-// REWARD POINTS SYSTEM (SUPABASE)
-// ==========================================
 
 async function fetchUserPoints() {
     if (!window.supabaseClient) return { points: 0, level: 'Bronze' };
@@ -936,6 +886,7 @@ async function fetchUserPoints() {
     }
 }
 
+// Add reward points to user profile after reservation
 window.addPoints = async function(amount) {
     if (!window.supabaseClient) return;
     const { data: { session } } = await window.supabaseClient.auth.getSession();
@@ -962,6 +913,7 @@ window.addPoints = async function(amount) {
     }
 };
 
+// Redeem 500 points for a discount
 window.redeemPoints = async function() {
     if (!window.supabaseClient) return;
     const { data: { session } } = await window.supabaseClient.auth.getSession();
@@ -1004,7 +956,6 @@ window.updatePointsDisplay = async function() {
     const displays = document.querySelectorAll('.points-display');
     const onDashboard = document.getElementById('reward-points');
     
-    // Only fetch if there is UI to update
     if (displays.length === 0 && !onDashboard) return;
     
     const data = await fetchUserPoints();
@@ -1030,7 +981,6 @@ window.renderDashboardRewards = function(data) {
     const progressEl = document.getElementById('reward-progress');
     const nextLevelEl = document.getElementById('reward-next-level');
 
-    // Guard: stop if essential elements or data are missing
     if (!pointsEl || !levelEl || !progressEl || !nextLevelEl || !data) return;
 
     pointsEl.textContent = `${data.points} pts`;
@@ -1051,7 +1001,6 @@ window.renderDashboardRewards = function(data) {
     }
 
     nextLevelEl.textContent   = nextLevel;
-    // Delay so CSS transition plays after element becomes visible
     progressEl.style.width = '0%';
     setTimeout(() => {
         progressEl.style.width = `${Math.min(100, progress)}%`;

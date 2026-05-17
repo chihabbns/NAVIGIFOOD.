@@ -1,6 +1,5 @@
-﻿document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function() {
     
-    // --- Utils ---
     function showError(elementId, message) {
         const errorEl = document.getElementById(elementId);
         if(errorEl) {
@@ -47,7 +46,6 @@
         }
     }
 
-    // --- Global Password Toggle ---
     const togglePassword = document.getElementById('togglePassword');
     const passwordInputGlobal = document.getElementById('password'); // Used for toggle and strength 
 
@@ -60,7 +58,6 @@
         });
     }
 
-    // --- Password Strength (Register Page Only) ---
     const strengthMeter = document.getElementById('strengthMeter');
     const strengthBar = document.getElementById('strengthBar');
     const strengthText = document.getElementById('strengthText');
@@ -77,7 +74,6 @@
             if (val.match(/\d/)) strength++; // Numbers
             if (val.match(/[^a-zA-Z\d]/)) strength++; // Special char
 
-            // Update UI
             let color = '#ff5252';
             let width = '25%';
             let text = 'Weak';
@@ -97,13 +93,11 @@
         });
     }
 
-    // --- Role Selection (Register Page) ---
     const urlParams = new URLSearchParams(window.location.search);
     const roleParam = urlParams.get('role');
     const roleSelect = document.getElementById('role');
     const planSection = document.getElementById('planSection');
     
-    // Define role categories
     const sellerRoles   = ['restaurant', 'hotel', 'bakery', 'market', 'catering'];
     const buyerRoles    = ['buyer', 'ngo'];
 
@@ -117,20 +111,17 @@
     }
 
     if (roleSelect) {
-        // Handle Plan Selection UI
         const planCards = document.querySelectorAll('.plan-card');
         planCards.forEach(card => {
             card.addEventListener('click', function() {
                 planCards.forEach(c => c.classList.remove('active'));
                 this.classList.add('active');
-                // FIX: also check the hidden radio input so input.checked works on submit
                 const radio = this.querySelector('input[type="radio"]');
                 if (radio) radio.checked = true;
                 hideError('planError');
             });
         });
 
-        // Toggle plan section based on role change
         roleSelect.addEventListener('change', togglePlanVisibility);
     }
 
@@ -139,21 +130,17 @@
         const optgroups     = Array.from(roleSelect.querySelectorAll('optgroup'));
 
         if (roleParam === 'donor') {
-            // Coming as a Seller → hide buyer/NGO options, keep only business options
             allOptions.forEach(opt => {
                 if (buyerRoles.includes(opt.value)) {
                     opt.style.display = 'none';
                     opt.disabled = true;
                 }
             });
-            // Pre-select first business option
             roleSelect.value = 'restaurant';
-            // Update label hint
             const label = roleSelect.closest('.form-group')?.querySelector('.form-label');
             if (label) label.textContent = 'My Business Type';
 
         } else if (roleParam === 'buyer') {
-            // Coming as a Buyer → hide all business options + optgroup
             allOptions.forEach(opt => {
                 if (sellerRoles.includes(opt.value)) {
                     opt.style.display = 'none';
@@ -161,24 +148,17 @@
                 }
             });
             optgroups.forEach(og => og.style.display = 'none');
-            // Pre-select buyer
             roleSelect.value = 'buyer';
-            // Update label hint
             const label = roleSelect.closest('.form-group')?.querySelector('.form-label');
             if (label) label.textContent = 'I want to...';
 
         } else {
-            // Generic fallback — just pre-select whatever value is in the URL
             roleSelect.value = roleParam;
         }
     }
 
-    // Call it once on load to set initial state
     togglePlanVisibility();
 
-    // ================================================================
-    //   REGISTER — Live Validation
-    // ================================================================
     const registerForm = document.getElementById('registerForm');
     if (registerForm) {
 
@@ -190,7 +170,6 @@
         const planInputs           = document.querySelectorAll('input[name="plan"]');
         const emailPattern         = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-        // --- Live: Name ---
         if (nameInput) {
             nameInput.addEventListener('input', () => {
                 const len = nameInput.value.trim().length;
@@ -208,7 +187,6 @@
             });
         }
 
-        // --- Live: Email ---
         if (emailInput) {
             emailInput.addEventListener('input', () => {
                 const val = emailInput.value.trim();
@@ -226,7 +204,6 @@
             });
         }
 
-        // --- Live: Password ---
         if (passwordInput) {
             passwordInput.addEventListener('input', () => {
                 const len = passwordInput.value.length;
@@ -243,7 +220,6 @@
             });
         }
 
-        // --- Live: Confirm Password ---
         function liveCheckConfirmPassword() {
             if (!confirmPasswordInput || !passwordInput) return;
             const val  = confirmPasswordInput.value;
@@ -260,7 +236,7 @@
             confirmPasswordInput.addEventListener('input', liveCheckConfirmPassword);
         }
 
-        // ---- Submit ----
+        // Handle user registration and profile creation
         registerForm.addEventListener('submit', async function (e) {
             e.preventDefault();
 
@@ -268,7 +244,6 @@
             const originalBtnText = btn ? btn.innerText : 'Create Account';
             const roleInput       = document.getElementById('role');
 
-            // Reset all error styles on submit
             document.querySelectorAll('.error-msg').forEach(el => {
                 el.style.display = 'none';
                 el.style.color = 'var(--danger, #e74c3c)';
@@ -373,16 +348,12 @@
         });
     }
 
-    // ================================================================
-    //   LOGIN — Live Validation
-    // ================================================================
     const loginForm = document.getElementById('loginForm');
     if (loginForm) {
         const emailInput    = document.getElementById('email');
         const passwordInput = document.getElementById('password');
         const emailPattern  = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-        // --- Live: Email ---
         if (emailInput) {
             emailInput.addEventListener('input', () => {
                 const val = emailInput.value.trim();
@@ -396,7 +367,6 @@
             });
         }
 
-        // --- Live: Password ---
         if (passwordInput) {
             passwordInput.addEventListener('input', () => {
                 if (passwordInput.value.length > 0) {
@@ -407,6 +377,7 @@
             });
         }
 
+        // Handle user login and role-based redirection
         loginForm.addEventListener('submit', async function (e) {
             e.preventDefault();
 

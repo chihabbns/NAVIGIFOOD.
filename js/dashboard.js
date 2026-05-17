@@ -1,7 +1,5 @@
-// Dashboard Logic
 let currentUserProfile = null;
 document.addEventListener('DOMContentLoaded', async () => {
-    // Check Auth & Role via Supabase
     if (!window.supabaseClient) {
         alert('Database connection not found.');
         return;
@@ -10,13 +8,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const { data: { session }, error: sessionError } = await window.supabaseClient.auth.getSession();
 
     if (!session) { 
-        // Not logged in
         alert('Please login to access the dashboard.');
         window.location.href = 'login.html';
         return;
     }
 
-    // Fetch user profile from Supabase
     const { data: profile } = await window.supabaseClient
         .from('profiles')
         .select('*')
@@ -41,7 +37,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     configureDashboardForRole(user.role);
     updateImpactAnalytics();
 
-    // Initial Render
     if (user.role === 'buyer' || user.role === 'ngo') {
         await renderRequests();
     } else {
@@ -69,26 +64,22 @@ function updateUserProfile(user) {
         if (dishLoc && !dishLoc.value) dishLoc.value = user.address;
     }
 
-    // Plan display logic
     const planInput = document.getElementById('profile-plan');
     if (planInput) {
         if (user.plan === 'pro') {
             planInput.value = 'Pro (Premium)';
             planInput.style.color = '#d68910';
             
-            // Add a pro badge next to the user name in sidebar
             const nameEl = document.getElementById('user-name');
             nameEl.innerHTML = `${user.name} <i class="fas fa-crown" style="color: #f39c12; font-size: 0.8em; margin-left: 5px;" title="Pro Plan"></i>`;
         } else if (user.plan === 'free') {
             planInput.value = 'Free';
         } else {
-            // Buyers/NGOs don't have a business plan
             planInput.value = 'N/A';
             planInput.parentElement.style.display = 'none';
         }
     }
 
-    // Optional: Update avatar based on role
     const avatarIcon = document.getElementById('user-avatar-icon');
 
     if(['donor', 'restaurant', 'hotel', 'bakery', 'market', 'catering'].includes(user.role)) avatarIcon.className = 'fas fa-store';
@@ -96,10 +87,10 @@ function updateUserProfile(user) {
     else avatarIcon.className = 'fas fa-user';
 }
 
+// Update user impact analytics (saved meals/money)
 async function updateImpactAnalytics() {
     if (!window.supabaseClient) return;
     
-    // Ensure we have a user session for ID
     const { data: { session } } = await window.supabaseClient.auth.getSession();
     if (!session) return;
     
@@ -108,9 +99,7 @@ async function updateImpactAnalytics() {
 
     try {
         if (userRole === 'buyer' || userRole === 'ngo') {
-            // Seeker Stats: Meals Rescued, Money Saved, Pending Requests
             
-            // 1. All Orders for this buyer
             const { data: seekerOrders, error: sError } = await window.supabaseClient
                 .from('orders')
                 .select('*, food_items(price, original_price)')
@@ -146,16 +135,13 @@ async function updateImpactAnalytics() {
             if (pendingEl) pendingEl.textContent = pendingRequests;
 
         } else {
-            // Provider Stats: Active Dishes, Pending Orders, Total Revenue
             
-            // 1. Active Dishes
             const { count: activeCount, error: aError } = await window.supabaseClient
                 .from('food_items')
                 .select('*', { count: 'exact', head: true })
                 .eq('donor_id', userId)
                 .eq('status', 'available');
 
-            // 2. All Orders for this donor/provider
             const { data: providerOrders, error: pError } = await window.supabaseClient
                 .from('orders')
                 .select('*, food_items(price)')
@@ -171,7 +157,6 @@ async function updateImpactAnalytics() {
                     if (order.status === 'Pending') {
                         pendingOrdersCount++;
                     } else if (order.status === 'Confirmed' || order.status === 'Collected') {
-                        // Handle the case where food_items might be an object OR an array
                         const fItem = Array.isArray(order.food_items) ? order.food_items[0] : order.food_items;
                         if (fItem && fItem.price) {
                             totalRevenue += fItem.price;
@@ -193,25 +178,20 @@ async function updateImpactAnalytics() {
     }
 }
 
+// Show/hide dashboard sections based on user role
 function configureDashboardForRole(role) {
-    // Default: details for Provider are visible in HTML structure,
-    // so we mainly need to toggle if it's a Seeker.
     
-    // Hide all role-specific elements first
     document.querySelectorAll('.role-link').forEach(el => el.style.display = 'none');
     document.querySelectorAll('.role-content').forEach(el => el.style.display = 'none');
 
     if (role === 'buyer' || role === 'ngo') {
-        // Show Seeker Elements (Buyer, NGO)
         document.querySelectorAll('.seeker-link').forEach(el => el.style.display = 'block');
         document.querySelectorAll('.seeker-content').forEach(el => el.style.display = 'grid'); // Grid for stats
         
-        // Hide add dish tab if it was active by default (unlikely but safe)
         const addFoodTab = document.getElementById('add-dish');
         if(addFoodTab && addFoodTab.classList.contains('active')) showTab('overview');
         
     } else {
-        // Show Provider Elements (Donor, Restaurant, Hotel, Bakery, Market, Catering, Admin)
         document.querySelectorAll('.provider-link').forEach(el => el.style.display = 'block');
         document.querySelectorAll('.provider-content').forEach(el => el.style.display = 'grid'); // Grid for stats
     }
@@ -221,7 +201,6 @@ function capitalize(str) {
     return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-// --- Tab Logic ---
 function showTab(tabId) {
     document.querySelectorAll('.dashboard-tab').forEach(tab => {
         tab.classList.remove('active');
@@ -246,7 +225,6 @@ function showTab(tabId) {
     }
 }
 
-// --- Dynamic Notifications ---
 async function renderNotifications(role) {
     const container = document.getElementById('dashboard-notifications');
     if (!container || !window.supabaseClient) return;
@@ -258,7 +236,6 @@ async function renderNotifications(role) {
 
     try {
         if (role === 'buyer' || role === 'ngo') {
-            // Buyer notifications based on recent order updates
             const { data: dbOrders } = await window.supabaseClient
                 .from('orders')
                 .select('status, food_items(title)')
@@ -280,7 +257,6 @@ async function renderNotifications(role) {
                 });
             }
         } else {
-            // Donor/Provider notifications based on recent pending or confirmed orders
             const { data: dbOrders } = await window.supabaseClient
                 .from('orders')
                 .select('status, buyer_name, food_items(title)')
@@ -317,7 +293,6 @@ async function renderNotifications(role) {
     `).join('');
 }
 
-// Provider: Render Orders
 async function renderOrders() {
     const container = document.getElementById('orders-list');
     if(!container || !window.supabaseClient) return;
@@ -325,7 +300,6 @@ async function renderOrders() {
     const { data: { session } } = await window.supabaseClient.auth.getSession();
     if (!session) return;
 
-    // Fetch orders where donor_id is current user
     const { data: dbOrders, error } = await window.supabaseClient
         .from('orders')
         .select('*, food_items(title)')
@@ -363,7 +337,6 @@ async function renderOrders() {
     `).join('');
 }
 
-// Provider: Render Listings
 async function renderListings() {
     const container = document.getElementById('listings-table');
     if(!container) return;
@@ -404,7 +377,6 @@ async function renderListings() {
     }
 }
 
-// Seeker: Render Requests
 async function renderRequests() {
     const overviewContainer = document.getElementById('overview-requests-list');
     const fullContainer = document.getElementById('my-requests-list');
@@ -434,7 +406,6 @@ async function renderRequests() {
         return;
     }
 
-    // Fetch donor names separately for all unique donor_ids
     const donorIds = [...new Set(dbRequests.map(r => r.donor_id).filter(Boolean))];
     let donorMap = {};
     if (donorIds.length > 0) {
@@ -480,13 +451,12 @@ function getStatusColor(status) {
 }
 
 
-// --- Actions ---
 
+// Update order status and restore inventory if rejected
 async function updateOrderStatus(id, status, foodId) {
     if (!window.supabaseClient) return;
 
     try {
-        // 1. Update order status
         const { error } = await window.supabaseClient
             .from('orders')
             .update({ status: status })
@@ -494,7 +464,6 @@ async function updateOrderStatus(id, status, foodId) {
 
         if (error) throw error;
 
-        // 2. If order is Rejected, restore the inventory quantity
         if (status === 'Rejected' && foodId) {
             const { data: currentItem } = await window.supabaseClient
                 .from('food_items')
@@ -524,7 +493,6 @@ async function updateOrderStatus(id, status, foodId) {
 async function editListing(id) {
     if (!window.supabaseClient) return;
     
-    // Fetch current details of this item
     const { data: item, error } = await window.supabaseClient
         .from('food_items')
         .select('title, price, quantity, status')
@@ -536,14 +504,12 @@ async function editListing(id) {
         return;
     }
 
-    // Populate the modal fields
     document.getElementById('edit-dish-id').value = id;
     document.getElementById('edit-dish-name').value = item.title;
     document.getElementById('edit-dish-price').value = item.price;
     document.getElementById('edit-dish-quantity').value = item.quantity || 1;
     document.getElementById('edit-dish-status').value = item.status || 'available';
 
-    // Show the modal
     document.getElementById('edit-modal').style.display = 'flex';
 }
 
@@ -608,10 +574,8 @@ async function deleteListing(id) {
     }
 }
 
-// Add Dish Logic
 let selectedPaymentMethod = null;
 
-// Live Preview Logic
 function initLivePreview() {
     const form = document.getElementById('add-dish-form');
     if (!form) return;
@@ -664,20 +628,17 @@ function initLivePreview() {
         
         if (previews.badge && inputs.category.value) {
             previews.badge.textContent = inputs.category.value;
-            // Update badge class based on category
             previews.badge.className = 'badge';
             const catClass = 'badge-' + inputs.category.value.toLowerCase().split(' ')[0].replace('&', 'catering');
             previews.badge.classList.add(catClass);
         }
     };
 
-    // Listen for all input changes
     Object.values(inputs).forEach(input => {
         if (!input) return;
         input.addEventListener('input', updatePreview);
     });
 
-    // Handle Image Selection
     if (inputs.image) {
         inputs.image.addEventListener('change', (e) => {
             const file = e.target.files[0];
@@ -693,11 +654,9 @@ function initLivePreview() {
         });
     }
 
-    // Initial call
     updatePreview();
 }
 
-// Call init when tab is shown
 const originalShowTab = showTab;
 showTab = function(tabId) {
     originalShowTab(tabId);
@@ -717,11 +676,9 @@ function handlePublishBoost() {
         const isPro = document.getElementById('profile-plan') && document.getElementById('profile-plan').value.toLowerCase().includes('pro');
 
         if (isPro) {
-            // Pro users get free boosts, bypass payment modal
             alert("Pro Plan Perk: Your listing is automatically boosted for free!");
             publishDish(true);
         } else {
-            // Free users must pay
             const modal = document.getElementById('payment-modal');
             if(modal) modal.style.display = 'flex';
         }
@@ -755,6 +712,7 @@ function processPayment() {
     publishDish(true);
 }
 
+// Upload image and publish a new food item listing
 async function publishDish(boosted) {
     if (!window.supabaseClient) {
         alert('Database connection not found.');
@@ -763,12 +721,10 @@ async function publishDish(boosted) {
 
     const isPro = document.getElementById('profile-plan') && document.getElementById('profile-plan').value.toLowerCase().includes('pro');
     
-    // Auto-boost for Pro users
     if (isPro) {
         boosted = true;
     }
 
-    // Get current user doing the publishing
     const { data: { session } } = await window.supabaseClient.auth.getSession();
     if (!session) {
         alert("You must be logged in to publish.");
@@ -782,7 +738,6 @@ async function publishDish(boosted) {
     const desc = document.getElementById('dish-desc').value;
     const location = document.getElementById('dish-location').value || "Algeria";
     
-    // Quick time string for the DB
     let timeRange = '';
     const pickupTo = document.getElementById('dish-pickup-to').value;
     const expiry = document.getElementById('dish-expiry').value;
@@ -794,11 +749,9 @@ async function publishDish(boosted) {
         timeRange = 'Soon';
     }
 
-    // Process image (Upload to Supabase Storage)
     let imageUrl = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=2000&auto=format&fit=crop';
     const imageInput = document.getElementById('dish-image');
     
-    // UI Loading state for the publish button (optional but good for UX)
     const publishBtn = document.querySelector('button[onclick*="handlePublish"]');
     let originalBtnHtml = '';
     if (publishBtn) {
@@ -811,10 +764,8 @@ async function publishDish(boosted) {
         try {
             const file = imageInput.files[0];
             const fileExt = file.name.split('.').pop();
-            // Generate a unique filename using random string + timestamp
             const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
             
-            // Upload to Supabase Storage (Bucket name: 'images')
             const { error: uploadError } = await window.supabaseClient.storage
                 .from('images')
                 .upload(fileName, file);
@@ -824,7 +775,6 @@ async function publishDish(boosted) {
                 throw uploadError;
             }
 
-            // Get Public URL
             const { data } = window.supabaseClient.storage
                 .from('images')
                 .getPublicUrl(fileName);
@@ -869,7 +819,6 @@ async function publishDish(boosted) {
 
         alert(`تم نشر عرض "${title}" بنجاح! 🥳`);
         
-        // Show success and reset form
         renderListings();
         updateImpactAnalytics();
         showTab('overview');
@@ -934,7 +883,6 @@ async function logout(event) {
     window.location.href = 'index.html';
 }
 
-// --- Messaging Logic ---
 let currentMessages = [];
 
 async function renderMessages() {
@@ -944,7 +892,6 @@ async function renderMessages() {
     const { data: { session } } = await window.supabaseClient.auth.getSession();
     if (!session) return;
 
-    // Fetch messages with explicit join identification
     const { data: messages, error } = await window.supabaseClient
         .from('messages')
         .select(`
@@ -1053,7 +1000,6 @@ async function viewMessage(msgId) {
         `}
     `;
 
-    // Mark as read if receiving and not already read
     if (!isSentByMe && !msg.read_status) {
         try {
             const { error } = await window.supabaseClient
@@ -1097,7 +1043,6 @@ async function replyToMessage(originalId, receiverId, originalSubject) {
         document.getElementById('reply-text').value = '';
         renderMessages();
         
-        // Return to selection or display empty
         document.getElementById('message-detail-active').style.display = 'none';
         document.getElementById('message-detail-empty').style.display = 'block';
     } catch (err) {
@@ -1143,7 +1088,6 @@ function showToast(title, message, type = 'info', icon = 'fas fa-info-circle') {
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
     
-    // Auto-select icon if not provided
     if (type === 'success') icon = 'fas fa-check-circle';
     if (type === 'warning') icon = 'fas fa-exclamation-triangle';
 
@@ -1158,20 +1102,18 @@ function showToast(title, message, type = 'info', icon = 'fas fa-info-circle') {
 
     container.appendChild(toast);
     
-    // Trigger animation
     setTimeout(() => toast.classList.add('active'), 10);
 
-    // Auto remove
     setTimeout(() => {
         toast.classList.remove('active');
         setTimeout(() => toast.remove(), 400);
     }, 5000);
 }
 
+// Initialize Supabase realtime subscriptions for notifications
 async function initRealtime(userId, role) {
     if (!window.supabaseClient) return;
 
-    // 1. Subscribe to New Messages
     window.supabaseClient
         .channel('realtime_messages')
         .on('postgres_changes', { 
@@ -1182,7 +1124,6 @@ async function initRealtime(userId, role) {
         }, payload => {
             showToast('New Message! 💬', 'You received a new message.', 'info', 'fas fa-envelope');
             updateMsgBadge();
-            // If currently viewing messages, re-render
             const msgTab = document.getElementById('messages');
             if (msgTab && msgTab.style.display !== 'none') {
                 renderMessages();
@@ -1190,10 +1131,7 @@ async function initRealtime(userId, role) {
         })
         .subscribe();
 
-    // 2. Subscribe to Orders
     if (role !== 'buyer' && role !== 'ngo') {
-        // As a Provider: Detect NEW orders
-        // Note: Realtime filter on item_id -> donor_id requires server-side logic or local filtering
         window.supabaseClient
             .channel('realtime_orders_provider')
             .on('postgres_changes', { 
@@ -1201,7 +1139,6 @@ async function initRealtime(userId, role) {
                 schema: 'public', 
                 table: 'orders'
             }, async payload => {
-                // Check if this order's item belongs to current provider
                 const { data: item } = await window.supabaseClient
                     .from('food_items')
                     .select('donor_id, title')
@@ -1216,7 +1153,6 @@ async function initRealtime(userId, role) {
             })
             .subscribe();
     } else {
-        // As a Buyer: Detect Status CHANGES
         window.supabaseClient
             .channel('realtime_orders_buyer')
             .on('postgres_changes', { 
@@ -1234,8 +1170,6 @@ async function initRealtime(userId, role) {
     }
 }
 
-// Update the main init in dashboard.js to call initRealtime
-// (I will do this in the next edit chunk or combined if possible)
 
 
 window.showToast = showToast;
